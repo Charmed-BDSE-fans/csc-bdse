@@ -153,22 +153,98 @@ public class KeyValueApiHttpClientTest2 {
 
     @Test
     public void actionUpDown() {
-        //TODO test up/down actions
+        // test up/down actions
+
+        api.action(Env.KVNODE_NAME, NodeAction.UP);
+        final Set<NodeInfo> ups = api.getInfo();
+        for (NodeInfo info : ups) {
+            if (Objects.equals(info.getName(), Env.KVNODE_NAME)) {
+                assertEquals(NodeStatus.UP, info.getStatus());
+            }
+        }
+
+        api.action(Env.KVNODE_NAME, NodeAction.DOWN);
+        final Set<NodeInfo> downs = api.getInfo();
+        for (NodeInfo info : downs) {
+            if (Objects.equals(info.getName(), Env.KVNODE_NAME)) {
+                assertEquals(NodeStatus.DOWN, info.getStatus());
+            }
+        }
     }
 
     @Test
     public void putWithStoppedNode() {
-        //TODO test put if node/container was stopped
+        // test put if node/container was stopped
+
+        final int ELEMENTS_NUM = 1000;
+
+        api.action(Env.KVNODE_NAME, NodeAction.UP);
+
+        String key = Random.nextKey();
+        byte[] data = Random.nextValue();
+
+        api.put(key, data);
+
+        for (int i = 0; i < ELEMENTS_NUM; i++) {
+            api.put(Random.nextKey(), Random.nextValue());
+        }
+
+        api.action(Env.KVNODE_NAME, NodeAction.DOWN);
+
+        Set<String> keys = api.getKeys("");
+        assertEquals(0, keys.size());
+
+        Optional<byte[]> respData = api.get(key);
+        assertFalse(respData.isPresent());
+
+        api.delete(key);
+
+        api.action(Env.KVNODE_NAME, NodeAction.UP);
+
+        Optional<byte[]> respDataAfterDelete = api.get(key);
+        assertTrue(respDataAfterDelete.isPresent());
+        assertEquals(data, respDataAfterDelete.get());
     }
 
     @Test
     public void getWithStoppedNode() {
-        //TODO test get if node/container was stopped
+        // test get if node/container was stopped
+
+        final int ELEMENTS_NUM = 1000;
+
+        api.action(Env.KVNODE_NAME, NodeAction.UP);
+
+        String key = Random.nextKey();
+        byte[] data = Random.nextValue();
+
+        api.put(key, data);
+
+        for (int i = 0; i < ELEMENTS_NUM; i++) {
+            api.put(Random.nextKey(), Random.nextValue());
+        }
+
+        api.action(Env.KVNODE_NAME, NodeAction.DOWN);
+
+        Optional<byte[]> respData = api.get(key);
+        assertFalse(respData.isPresent());
     }
 
     @Test
     public void getKeysByPrefixWithStoppedNode() {
-        //TODO test getKeysByPrefix if node/container was stopped
+        // test getKeysByPrefix if node/container was stopped
+
+        final int ELEMENTS_NUM = 1000;
+
+        api.action(Env.KVNODE_NAME, NodeAction.UP);
+
+        for (int i = 0; i < ELEMENTS_NUM; i++) {
+            api.put(Random.nextKey(), Random.nextValue());
+        }
+
+        api.action(Env.KVNODE_NAME, NodeAction.DOWN);
+
+        Set<String> keys = api.getKeys("");
+        assertEquals(0, keys.size());
     }
 
     @Test
