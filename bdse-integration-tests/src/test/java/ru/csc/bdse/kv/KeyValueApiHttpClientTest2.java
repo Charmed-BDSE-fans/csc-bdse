@@ -2,14 +2,19 @@ package ru.csc.bdse.kv;
 
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.images.builder.ImageFromDockerfile;
+import org.testcontainers.containers.DockerComposeContainer;
 import ru.csc.bdse.util.Env;
+import ru.csc.bdse.util.Random;
 
 import java.io.File;
-import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Test have to be implemented
@@ -19,25 +24,64 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 public class KeyValueApiHttpClientTest2 {
 
     @ClassRule
-    public static final GenericContainer node = new GenericContainer(
-            new ImageFromDockerfile()
-                    .withFileFromFile("target/bdse-kvnode-0.0.1-SNAPSHOT.jar", new File
-                            ("../bdse-kvnode/target/bdse-kvnode-0.0.1-SNAPSHOT.jar"))
-                    .withFileFromClasspath("Dockerfile", "kvnode/Dockerfile"))
-            .withEnv(Env.KVNODE_NAME, "node-0")
-            .withExposedPorts(8080)
-            .withStartupTimeout(Duration.of(30, SECONDS));
+    public static final DockerComposeContainer composition =
+            new DockerComposeContainer(new File("src/test/resources/kvnode/docker-compose.yml"))
+                    .withEnv(Env.KVNODE_NAME, "node-0")
+                    .withExposedService("kvnode", 8080);
 
     private KeyValueApi api = newKeyValueApi();
 
     private KeyValueApi newKeyValueApi() {
-        final String baseUrl = "http://localhost:" + node.getMappedPort(8080);
+        final String baseUrl = "http://localhost:" + composition.getServicePort("kvnode", 8080);
         return new KeyValueApiHttpClient(baseUrl);
     }
 
     @Test
     public void concurrentPuts() {
-        // TODO simultanious puts for the same key value
+        // simultanious puts for the same key value
+        api.action(Env.KVNODE_NAME, NodeAction.UP);
+
+        final String key = Random.nextKey();
+        final ArrayList<byte[]> dataCandidates = new ArrayList<>();
+
+        final int CPU_NUM = Runtime.getRuntime().availableProcessors();
+        final int DATA_CANDIDATES_MAX = 1000;
+
+        for (int i = 0; i < DATA_CANDIDATES_MAX * CPU_NUM; i++) {
+            dataCandidates.add(Random.nextValue());
+        }
+
+        ExecutorService executorService = Executors.newFixedThreadPool(CPU_NUM);
+
+        for (int i = 0; i < CPU_NUM; i++) {
+            final int taskID = i;
+            executorService.submit(() -> {
+                for (int j = 0; j < DATA_CANDIDATES_MAX; j++) {
+                    int k = taskID * DATA_CANDIDATES_MAX + j;
+                    api.put(key, dataCandidates.get(k));
+                }
+            });
+        }
+
+        try {
+            executorService.wait();
+        } catch (InterruptedException e) {
+            fail("can't wait the end of puts");
+        }
+
+        final Optional<byte[]> resp = api.get(key);
+
+        assertTrue(resp.isPresent());
+
+        final byte[] result = resp.get();
+
+        for (int i = 0; i < CPU_NUM * DATA_CANDIDATES_MAX; i++) {
+            if (Arrays.equals(result, dataCandidates.get(i))) {
+                return;
+            }
+        }
+
+        fail("get impossible data");
     }
 
     @Test
