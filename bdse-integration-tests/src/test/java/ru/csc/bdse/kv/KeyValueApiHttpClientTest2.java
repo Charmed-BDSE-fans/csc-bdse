@@ -7,14 +7,11 @@ import ru.csc.bdse.util.Env;
 import ru.csc.bdse.util.Random;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Test have to be implemented
@@ -86,7 +83,51 @@ public class KeyValueApiHttpClientTest2 {
 
     @Test
     public void concurrentDeleteAndKeys() {
-        //TODO simultanious delete by key and keys listing
+        // simultanious delete by key and keys listing
+        final int ELEMENTS_NUM = 100000;
+
+        ExecutorService executorService = Executors.newCachedThreadPool();
+
+        byte[] data = new byte[] {1, 2, 3, 4};
+        for (int i = 0; i < ELEMENTS_NUM; i++) {
+            String key = Integer.toString(i);
+            api.put(key, data);
+        }
+
+        final Set<String> allKeys = api.getKeys("");
+        assertEquals(ELEMENTS_NUM, allKeys.size());
+
+        final List<String> removed = new ArrayList<>();
+
+        final int REMOVE_NUM = ELEMENTS_NUM / 10;
+        final int REMOVE_GROUPS_NUM = REMOVE_NUM / 10;
+
+        for (int i = 0; i < REMOVE_GROUPS_NUM; i++) {
+            executorService.submit(() -> {
+                java.util.Random rand = new java.util.Random();
+                for (int j = 0; j < REMOVE_NUM; j++) {
+                    String key = Integer.toString(rand.nextInt() % ELEMENTS_NUM);
+                    api.delete(key);
+                    removed.add(key);
+                }
+            });
+        }
+
+        try {
+            executorService.wait();
+        } catch (InterruptedException e) {
+            fail("can't wait the end of tasks");
+        }
+
+        final Set<String> remainingKeys = api.getKeys("");
+
+        assertEquals(ELEMENTS_NUM - REMOVE_NUM, remainingKeys.size());
+
+        for (String key : remainingKeys) {
+            for (String removedKey : removed) {
+                assertNotEquals(key, removedKey);
+            }
+        }
     }
 
     @Test
