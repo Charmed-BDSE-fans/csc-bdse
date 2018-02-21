@@ -24,11 +24,13 @@ import static org.junit.Assert.*;
  * @author alesavin
  */
 public class KeyValueApiHttpClientTest2 {
+    @ClassRule
+    public static final Network testNetwork = Network.newNetwork();
 
     @ClassRule
     public static final GenericContainer db =
             new GenericContainer(new RemoteDockerImage("postgres:10"))
-                    .withNetwork(Network.SHARED);
+                    .withNetwork(testNetwork);
 
     @ClassRule
     public static final GenericContainer kvnode = new GenericContainer(
@@ -36,7 +38,7 @@ public class KeyValueApiHttpClientTest2 {
                     .withFileFromFile("target/bdse-kvnode-0.0.1-SNAPSHOT.jar", new File
                             ("../bdse-kvnode/target/bdse-kvnode-0.0.1-SNAPSHOT.jar"))
                     .withFileFromClasspath("Dockerfile", "kvnode/Dockerfile"))
-            .withNetwork(Network.SHARED)
+            .withNetwork(testNetwork)
             .withEnv(Env.KVNODE_NAME, "node-0")
             .withExposedPorts(8080)
             .withStartupTimeout(Duration.of(30, SECONDS));
