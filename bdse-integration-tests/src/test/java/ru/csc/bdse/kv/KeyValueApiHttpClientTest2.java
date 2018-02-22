@@ -4,18 +4,15 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import org.testcontainers.images.builder.ImageFromDockerfile;
-import ru.csc.bdse.util.Containers;
 import ru.csc.bdse.util.Env;
 import ru.csc.bdse.util.Random;
+import ru.csc.bdse.util.containers.Postgres;
+import sun.nio.ch.Net;
 
-import java.io.File;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.junit.Assert.*;
 
 /**
@@ -28,10 +25,10 @@ public class KeyValueApiHttpClientTest2 {
     public static final Network testNetwork = Network.newNetwork();
 
     @ClassRule
-    public static final GenericContainer db = Containers.postgres();
+    public static final GenericContainer db = Postgres.db(testNetwork);
 
     @ClassRule
-    public static final GenericContainer kvnode = Containers.kvnode();
+    public static final GenericContainer kvnode = Postgres.kvnode(testNetwork);
 
 
     private KeyValueApi api = newKeyValueApi();
