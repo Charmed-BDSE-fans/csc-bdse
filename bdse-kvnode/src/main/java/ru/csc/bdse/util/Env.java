@@ -1,6 +1,7 @@
 package ru.csc.bdse.util;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * @author semkagtn
@@ -17,5 +18,9 @@ public class Env {
 
     public static Optional<String> get(final String name) {
         return Optional.ofNullable(System.getenv(name));
+    }
+
+    public static String randomNodeName() {
+        return "kvnode-" + UUID.randomUUID().toString().substring(4);
     }
 }
