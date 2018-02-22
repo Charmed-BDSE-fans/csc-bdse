@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS kvtable (
+    k TEXT PRIMARY KEY,
+    v TEXT
+);

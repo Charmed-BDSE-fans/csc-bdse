@@ -4,8 +4,8 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import org.testcontainers.images.RemoteDockerImage;
 import org.testcontainers.images.builder.ImageFromDockerfile;
+import ru.csc.bdse.util.Containers;
 import ru.csc.bdse.util.Env;
 import ru.csc.bdse.util.Random;
 
@@ -28,21 +28,10 @@ public class KeyValueApiHttpClientTest2 {
     public static final Network testNetwork = Network.newNetwork();
 
     @ClassRule
-    public static final GenericContainer db =
-            new GenericContainer(new RemoteDockerImage("postgres:10"))
-                    .withNetwork(testNetwork);
+    public static final GenericContainer db = Containers.postgres();
 
     @ClassRule
-    public static final GenericContainer kvnode = new GenericContainer(
-            new ImageFromDockerfile()
-                    .withFileFromFile("target/bdse-kvnode-0.0.1-SNAPSHOT.jar", new File
-                            ("../bdse-kvnode/target/bdse-kvnode-0.0.1-SNAPSHOT.jar"))
-                    .withFileFromClasspath("Dockerfile", "kvnode/Dockerfile"))
-            .withNetwork(testNetwork)
-            .withEnv(Env.KVNODE_NAME, "node-0")
-            .withExposedPorts(8080)
-            .withStartupTimeout(Duration.of(30, SECONDS));
-
+    public static final GenericContainer kvnode = Containers.kvnode();
 
 
     private KeyValueApi api = newKeyValueApi();
