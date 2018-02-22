@@ -7,7 +7,6 @@ import org.testcontainers.containers.Network;
 import ru.csc.bdse.util.Env;
 import ru.csc.bdse.util.Random;
 import ru.csc.bdse.util.containers.Postgres;
-import sun.nio.ch.Net;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -241,7 +240,7 @@ public class KeyValueApiHttpClientTest2 {
     }
 
     @Test
-    public void loadMillionKeys()  {
+    public void loadMillionKeys() {
         //TODO load too many data (optional)
     }
 }
