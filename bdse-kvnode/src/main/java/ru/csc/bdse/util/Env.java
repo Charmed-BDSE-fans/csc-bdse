@@ -13,6 +13,8 @@ public class Env {
 
     public static final String KVNODE_NAME = "KVNODE_NAME";
 
+    public static final String SPRING_PROFILES_ACTIVE = "SPRING_PROFILES_ACTIVE";
+
     public static Optional<String> get(final String name) {
         return Optional.ofNullable(System.getenv(name));
     }
