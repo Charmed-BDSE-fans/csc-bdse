@@ -1,4 +1,4 @@
-package ru.csc.bdse.util.containers;
+package ru.csc.bdse.util;
 
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
@@ -10,19 +10,18 @@ import java.time.Duration;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
-public class Postgres {
+public class Containers {
 
-    public static GenericContainer db(Network network) {
-        return new GenericContainer(
-                new ImageFromDockerfile()
+    public static GenericContainer postgres(Network network) {
+        return new GenericContainer(new ImageFromDockerfile()
                         .withFileFromClasspath("kvdb.sql", "db/kvdb.sql")
-                        .withFileFromClasspath("Dockerfile","db/Dockerfile")
-        ).withNetwork(network)
+                        .withFileFromClasspath("Dockerfile","db/Dockerfile"))
+                .withNetwork(network)
                 .withExposedPorts(5432)
                 .withStartupTimeout(Duration.of(30, SECONDS));
     }
 
-    public static GenericContainer kvnode(Network network) {
+    public static GenericContainer kvnode(Network network, String profile) {
         return new GenericContainer(
                 new ImageFromDockerfile()
                         .withFileFromFile("target/bdse-kvnode-0.0.1-SNAPSHOT.jar", new File
@@ -30,7 +29,7 @@ public class Postgres {
                         .withFileFromClasspath("Dockerfile", "kvnode/Dockerfile"))
                 .withNetwork(network)
                 .withEnv(Env.KVNODE_NAME, "node-0")
-                .withEnv(Env.SPRING_PROFILES_ACTIVE, "postgres")
+                .withEnv(Env.SPRING_PROFILES_ACTIVE, profile)
                 .withExposedPorts(8080)
                 .withStartupTimeout(Duration.of(30, SECONDS));
     }

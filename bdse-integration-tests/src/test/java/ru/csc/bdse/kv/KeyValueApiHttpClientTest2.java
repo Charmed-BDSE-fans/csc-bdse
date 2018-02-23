@@ -7,7 +7,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import ru.csc.bdse.util.Env;
 import ru.csc.bdse.util.Random;
-import ru.csc.bdse.util.containers.Postgres;
+import ru.csc.bdse.util.Containers;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -22,15 +22,14 @@ import static org.junit.Assert.*;
  */
 public class KeyValueApiHttpClientTest2 {
     private static final Network testNetwork = Network.newNetwork();
-    private static final GenericContainer db = Postgres.db(testNetwork);
-    private static final GenericContainer kvnode = Postgres.kvnode(testNetwork);
+    private static final GenericContainer db = Containers.postgres(testNetwork);
+    private static final GenericContainer kvnode = Containers.kvnode(testNetwork, "inmemory");
 
     @ClassRule
     public static final RuleChain ruleChain =
             RuleChain.outerRule(testNetwork)
                     .around(db)
                     .around(kvnode);
-
 
     private KeyValueApi api = newKeyValueApi();
 
