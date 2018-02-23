@@ -11,16 +11,14 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.images.RemoteDockerImage;
 import ru.csc.bdse.config.PostgresKeyValueApiConfig;
+import ru.csc.bdse.util.Containers;
 
 @SpringBootTest(classes = PostgresKeyValueApiConfig.class)
 @ActiveProfiles("postgres")
 @RunWith(SpringJUnit4ClassRunner.class)
 public class PostgresKeyValueApiTest extends AbstractKeyValueApiTest {
     @ClassRule
-    public static final GenericContainer db =
-            new GenericContainer(new RemoteDockerImage("postgres:10"))
-                    .withNetwork(Network.SHARED)
-                    .withExposedPorts(5432);
+    public static final GenericContainer db = Containers.postgres(Network.SHARED);
 
     @Autowired
     private KeyValueApi api;

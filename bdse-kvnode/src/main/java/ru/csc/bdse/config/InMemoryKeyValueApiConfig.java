@@ -17,8 +17,10 @@ import ru.csc.bdse.util.Env;
         DataSourceTransactionManagerAutoConfiguration.class,
         HibernateJpaAutoConfiguration.class
 })
-@Profile("inmemory")
+@Profile(InMemoryKeyValueApiConfig.PROFILE)
 public class InMemoryKeyValueApiConfig {
+    public static final String PROFILE = "in-memory";
+
     @Bean
     KeyValueApi inMemoryNode() {
         String nodeName = Env.get(Env.KVNODE_NAME).orElseGet(Env::randomNodeName);

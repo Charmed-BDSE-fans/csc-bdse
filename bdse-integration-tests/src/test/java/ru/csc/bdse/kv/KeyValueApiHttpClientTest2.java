@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
+import ru.csc.bdse.config.InMemoryKeyValueApiConfig;
 import ru.csc.bdse.util.Env;
 import ru.csc.bdse.util.Random;
 import ru.csc.bdse.util.Containers;
@@ -23,7 +24,7 @@ import static org.junit.Assert.*;
 public class KeyValueApiHttpClientTest2 {
     private static final Network testNetwork = Network.newNetwork();
     private static final GenericContainer db = Containers.postgres(testNetwork);
-    private static final GenericContainer kvnode = Containers.kvnode(testNetwork, "inmemory");
+    private static final GenericContainer kvnode = Containers.kvnode(testNetwork, InMemoryKeyValueApiConfig.PROFILE);
 
     @ClassRule
     public static final RuleChain ruleChain =

@@ -13,8 +13,10 @@ import ru.csc.bdse.util.Env;
 @Configuration
 @EnableAutoConfiguration
 @EnableJpaRepositories
-@Profile("postgres")
+@Profile(PostgresKeyValueApiConfig.PROFILE)
 public class PostgresKeyValueApiConfig {
+    public static final String PROFILE = "postgres";
+
     @Bean
     KeyValueApi postgresNode(RecordRepository repository) {
         String nodeName = Env.get(Env.KVNODE_NAME).orElseGet(Env::randomNodeName);

@@ -4,6 +4,7 @@ import org.junit.ClassRule;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.images.builder.ImageFromDockerfile;
+import ru.csc.bdse.config.InMemoryKeyValueApiConfig;
 import ru.csc.bdse.util.Containers;
 import ru.csc.bdse.util.Env;
 
@@ -18,7 +19,7 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 public class KeyValueApiHttpClientTest extends AbstractKeyValueApiTest {
 
     @ClassRule
-    public static final GenericContainer node = Containers.kvnode(Network.SHARED, "inmemory");
+    public static final GenericContainer node = Containers.kvnode(Network.SHARED, InMemoryKeyValueApiConfig.PROFILE);
 
     @Override
     protected KeyValueApi newKeyValueApi() {
