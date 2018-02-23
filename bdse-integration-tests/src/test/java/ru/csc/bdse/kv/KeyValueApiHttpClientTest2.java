@@ -2,6 +2,7 @@ package ru.csc.bdse.kv;
 
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import ru.csc.bdse.util.Env;
@@ -20,14 +21,15 @@ import static org.junit.Assert.*;
  * @author alesavin
  */
 public class KeyValueApiHttpClientTest2 {
-    @ClassRule
-    public static final Network testNetwork = Network.newNetwork();
+    private static final Network testNetwork = Network.newNetwork();
+    private static final GenericContainer db = Postgres.db(testNetwork);
+    private static final GenericContainer kvnode = Postgres.kvnode(testNetwork);
 
     @ClassRule
-    public static final GenericContainer db = Postgres.db(testNetwork);
-
-    @ClassRule
-    public static final GenericContainer kvnode = Postgres.kvnode(testNetwork);
+    public static final RuleChain ruleChain =
+            RuleChain.outerRule(testNetwork)
+                    .around(db)
+                    .around(kvnode);
 
 
     private KeyValueApi api = newKeyValueApi();
