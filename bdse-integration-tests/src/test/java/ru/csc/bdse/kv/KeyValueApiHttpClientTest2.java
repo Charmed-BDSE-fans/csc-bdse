@@ -35,8 +35,7 @@ public class KeyValueApiHttpClientTest2 {
     private KeyValueApi api = newKeyValueApi();
 
     private KeyValueApi newKeyValueApi() {
-        final String baseUrl = "http://localhost:" + kvnode.getMappedPort(8080);
-        return new KeyValueApiHttpClient(baseUrl);
+        return new KeyValueApiHttpClient(Containers.getKVNodeBaseUrl(kvnode));
     }
 
     @Test

@@ -8,7 +8,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ru.csc.bdse.config.InMemoryKeyValueApiConfig;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = Application.class)
+@SpringBootTest
 @ActiveProfiles(InMemoryKeyValueApiConfig.PROFILE)
 public class ApplicationTests {
 	@Test

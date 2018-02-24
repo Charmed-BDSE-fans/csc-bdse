@@ -1,5 +1,6 @@
 package ru.csc.bdse.config;
 
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
@@ -11,15 +12,10 @@ import ru.csc.bdse.kv.InMemoryKeyValueApi;
 import ru.csc.bdse.kv.KeyValueApi;
 import ru.csc.bdse.util.Env;
 
-@Configuration
-@EnableAutoConfiguration(exclude = {
-        DataSourceAutoConfiguration.class,
-        DataSourceTransactionManagerAutoConfiguration.class,
-        HibernateJpaAutoConfiguration.class
-})
+@SpringBootConfiguration
 @Profile(InMemoryKeyValueApiConfig.PROFILE)
 public class InMemoryKeyValueApiConfig {
-    public static final String PROFILE = "in-memory";
+    public static final String PROFILE = "in_memory";
 
     @Bean
     KeyValueApi inMemoryNode() {
