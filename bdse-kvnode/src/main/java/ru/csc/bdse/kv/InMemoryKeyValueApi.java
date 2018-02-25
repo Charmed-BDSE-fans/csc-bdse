@@ -86,7 +86,7 @@ public class InMemoryKeyValueApi implements KeyValueApi {
 
     @Override
     public Set<NodeInfo> getInfo() {
-        return Collections.singleton(new NodeInfo(name, NodeStatus.UP));
+        return Collections.singleton(new NodeInfo(name, status));
     }
 
     @Override
