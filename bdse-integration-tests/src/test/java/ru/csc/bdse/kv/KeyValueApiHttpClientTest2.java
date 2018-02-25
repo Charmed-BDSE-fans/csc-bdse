@@ -1,11 +1,7 @@
 package ru.csc.bdse.kv;
 
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.testcontainers.containers.Network;
-import ru.csc.bdse.util.Containers;
 import ru.csc.bdse.util.Random;
 
 import java.util.*;
@@ -21,27 +17,15 @@ import static org.junit.Assert.*;
  *
  * @author alesavin
  */
-public class KeyValueApiHttpClientTest2 {
+public abstract class KeyValueApiHttpClientTest2 {
     private static final String KVNODE_NAME = "node-0";
-    private static final Network testNetwork = Network.newNetwork();
-//    private static final Containers.PostgresContainer<?> db = Containers
-//            .postgresDB()
-//            .withNetwork(testNetwork);
-    private static final Containers.KVNodeContainer<?> kvnode = Containers
-//            .postgresNode(KVNODE_NAME, db.getConnectionUrl(true))
-            .inMemoryNode(KVNODE_NAME)
-            .withNetwork(testNetwork);
-
-    @ClassRule
-    public static final RuleChain ruleChain =
-            RuleChain.outerRule(testNetwork)
-//                    .around(db)
-                    .around(kvnode);
 
     private KeyValueApi api = newKeyValueApi();
 
+    protected abstract String kvnodeUrl();
+
     private KeyValueApi newKeyValueApi() {
-        return new KeyValueApiHttpClient(kvnode.getRESTBaseUrl(false));
+        return new KeyValueApiHttpClient(kvnodeUrl());
     }
 
     @Before
