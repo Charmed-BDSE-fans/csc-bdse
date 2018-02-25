@@ -4,7 +4,6 @@ import ru.csc.bdse.db.Record;
 import ru.csc.bdse.db.RecordKey;
 import ru.csc.bdse.db.RecordRepository;
 
-import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
@@ -14,19 +13,29 @@ import java.util.stream.Collectors;
 public class PostgresKeyValueApi implements KeyValueApi {
     private final String name;
     private final RecordRepository repository;
+    private NodeStatus status;
 
     public PostgresKeyValueApi(String name, RecordRepository repository) {
         this.name = name;
         this.repository = repository;
+        status = NodeStatus.UP;
     }
 
     @Override
     public void put(String key, byte[] value) {
+        if (status == NodeStatus.DOWN) {
+            return;
+        }
+
         repository.save(new Record(key, value));
     }
 
     @Override
     public Optional<byte[]> get(String key) {
+        if (status == NodeStatus.DOWN) {
+            return Optional.empty();
+        }
+
         return repository
                 .findByKey(key)
                 .map(Record::getValue);
@@ -34,6 +43,10 @@ public class PostgresKeyValueApi implements KeyValueApi {
 
     @Override
     public Set<String> getKeys(String prefix) {
+        if (status == NodeStatus.DOWN) {
+            return Collections.emptySet();
+        }
+
         return repository
                 .findByKeyStartingWith(prefix)
                 .stream()
@@ -43,6 +56,10 @@ public class PostgresKeyValueApi implements KeyValueApi {
 
     @Override
     public void delete(String key) {
+        if (status == NodeStatus.DOWN) {
+            return;
+        }
+
         repository.deleteIfExists(key);
     }
 
@@ -53,11 +70,26 @@ public class PostgresKeyValueApi implements KeyValueApi {
 
     @Override
     public void action(String node, NodeAction action) {
-        throw new RuntimeException("action not implemented now");
+        if (!Objects.equals(name, node)) {
+            return;
+        }
+
+        switch (action) {
+            case UP:
+                status = NodeStatus.UP;
+                break;
+            case DOWN:
+                status = NodeStatus.DOWN;
+                break;
+        }
     }
 
     @Override
     public void deleteAll() {
+        if (status == NodeStatus.DOWN) {
+            return;
+        }
+
         repository.deleteAll();
     }
 }

@@ -97,7 +97,13 @@ public class KeyValueApiHttpClient implements KeyValueApi {
 
     @Override
     public void action(String node, NodeAction action) {
-        throw new RuntimeException("action not implemented now");
+        Require.nonNull(node, "null key");
+
+        final String url = baseUrl + "/action/" + node + "/" + action.toString();
+        final ResponseEntity<byte[]> responseEntity = request(url, HttpMethod.POST, Constants.EMPTY_BYTE_ARRAY);
+        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+            throw new RuntimeException("Response error: " + responseEntity);
+        }
     }
 
     @Override
