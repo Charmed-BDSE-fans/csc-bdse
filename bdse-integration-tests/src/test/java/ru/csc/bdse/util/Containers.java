@@ -102,7 +102,7 @@ public class Containers {
          */
         public void setupSpringContext(ConfigurableApplicationContext context) {
             EnvironmentTestUtils.addEnvironment(context,
-                    String.format("%s=%s", Env.SPRING_DATASOURCE_URL, getConnectionUrl(false)));
+                    String.format("%s=%s", Env.SPRING_DATASOURCE_URL_PROPERTY, getConnectionUrl(false)));
         }
     }
 
