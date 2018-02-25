@@ -5,49 +5,153 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.images.builder.ImageFromDockerfile;
+import ru.csc.bdse.config.InMemoryKeyValueApiConfig;
+import ru.csc.bdse.config.PostgresKeyValueApiConfig;
 
 import java.io.File;
 import java.time.Duration;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
+/**
+ * Container utils for testing
+ */
 public class Containers {
-    private static final int APPLICATION_PORT = 8080;
-    private static final int POSTGRES_PORT = 5432;
+    private static final Duration DEFAULT_TIMEOUT = Duration.of(30, SECONDS);
 
-    public static GenericContainer postgres(Network network) {
-        return new GenericContainer(new ImageFromDockerfile()
-                        .withFileFromClasspath("kvdb.sql", "db/kvdb.sql")
-                        .withFileFromClasspath("Dockerfile","db/Dockerfile"))
-                .withNetwork(network)
-                .withExposedPorts(POSTGRES_PORT)
-                .withStartupTimeout(Duration.of(30, SECONDS));
+    /**
+     * Creates Postgres DB container.
+     */
+    public static <T extends PostgresContainer<T>> PostgresContainer<T> postgresDB() {
+        return new PostgresContainer<>();
     }
 
-    public static GenericContainer kvnode(Network network, String name, String profile) {
-        return new GenericContainer(
-                new ImageFromDockerfile()
-                        .withFileFromFile("target/bdse-kvnode-0.0.1-SNAPSHOT.jar", new File
-                                ("../bdse-kvnode/target/bdse-kvnode-0.0.1-SNAPSHOT.jar"))
-                        .withFileFromClasspath("Dockerfile", "kvnode/Dockerfile"))
-                .withNetwork(network)
-                .withEnv(Env.KVNODE_NAME, name)
-                .withEnv(Env.SPRING_PROFILES_ACTIVE, profile)
-                .withExposedPorts(APPLICATION_PORT)
-                .withStartupTimeout(Duration.of(30, SECONDS));
+    /**
+     * Creates in-memory key-value node with given name.
+     * @param name Node name.
+     */
+    public static <T extends KVNodeContainer<T>> KVNodeContainer<T> inMemoryNode(String name) {
+        return new KVNodeContainer<>(InMemoryKeyValueApiConfig.PROFILE, name);
     }
 
-    public static String getPostgresJdbc(GenericContainer container) {
-        return String.format("jdbc:postgresql://localhost:%d/postgres", container.getMappedPort(POSTGRES_PORT));
+    /**
+     * Creates in-memory key-value node with default name.
+     */
+    public static <T extends KVNodeContainer<T>> KVNodeContainer<T> inMemoryNode() {
+        return inMemoryNode(KVNodeContainer.DEFAULT_NODE_NAME);
     }
 
-    public static String getKVNodeBaseUrl(GenericContainer container) {
-        return String.format("http://localhost:%d", container.getMappedPort(APPLICATION_PORT));
+    /**
+     * Creates Postgres-based key-value node with given name.
+     * @param name Node name.
+     * @param connectionUrl Database connection URL.
+     */
+    public static <T extends KVNodeContainer<T>> KVNodeContainer<T> postgresNode(String name, String connectionUrl) {
+        return new KVNodeContainer<T>(PostgresKeyValueApiConfig.PROFILE, name)
+                .withEnv(Env.SPRING_DATASOURCE_URL, connectionUrl);
     }
 
-    public static void setupSpringContextForPostgres(ConfigurableApplicationContext context, GenericContainer db) {
-        EnvironmentTestUtils.addEnvironment(context,
-                String.format("spring.datasource.url=%s", getPostgresJdbc(db)));
-
+    /**
+     * Creates Postgres-based key-value node with default name.
+     * @param connectionUrl Database connection URL.
+     */
+    public static <T extends KVNodeContainer<T>> KVNodeContainer<T> postgresNode(String connectionUrl) {
+        return postgresNode(KVNodeContainer.DEFAULT_NODE_NAME, connectionUrl);
     }
+
+    public static final class PostgresContainer<SELF extends PostgresContainer<SELF>> extends GenericContainer<SELF> {
+        private static final String NETWORK_ALIAS = "postgres";
+        private static final int POSTGRES_PORT = 5432;
+
+        private PostgresContainer() {
+            super(new ImageFromDockerfile()
+                    .withFileFromClasspath("kvdb.sql", "db/kvdb.sql")
+                    .withFileFromClasspath("Dockerfile","db/Dockerfile"));
+            withExposedPorts(POSTGRES_PORT);
+            withStartupTimeout(DEFAULT_TIMEOUT);
+            withNetworkAliases(NETWORK_ALIAS);
+        }
+
+        /**
+         * Returns database connection URL.
+         *
+         * If asked for predefined address, will return address that is known before the container is started,
+         * but custom network setup is required (ie, `Network.SHARED` cannot be used).
+         *
+         * Else, will give runtime address.
+         *
+         * @param getPredefinedAddress Set true to get predefined address.
+         */
+        public String getConnectionUrl(boolean getPredefinedAddress) {
+            if (getNetwork() == Network.SHARED && getPredefinedAddress)
+                throw new IllegalStateException("Cannot get predefined address in shared network setup.");
+            String host = NETWORK_ALIAS;
+            int port = POSTGRES_PORT;
+            if (!getPredefinedAddress) {
+                host = getContainerIpAddress();
+                port = getMappedPort(POSTGRES_PORT);
+            }
+            return String.format("jdbc:postgresql://%s:%d/postgres", host, port);
+        }
+
+        /**
+         * Setups Spring Context to connect to database specified by this container.
+         * If you want to run local test with database, call this method from initializer.
+         * @see org.springframework.context.ApplicationContextInitializer
+         * @param context Context from ApplicationContextInitializer
+         */
+        public void setupSpringContext(ConfigurableApplicationContext context) {
+            EnvironmentTestUtils.addEnvironment(context,
+                    String.format("%s=%s", Env.SPRING_DATASOURCE_URL_PROPERTY, getConnectionUrl(false)));
+        }
+    }
+
+    public static final class KVNodeContainer<SELF extends KVNodeContainer<SELF>> extends GenericContainer<SELF> {
+        private static final String DEFAULT_NODE_NAME = "kv-node-0";
+        private static final int APPLICATION_PORT = 8080;
+
+        private final String name;
+
+        private KVNodeContainer(String profile, String name) {
+            super(new ImageFromDockerfile()
+                    .withFileFromFile("target/bdse-kvnode-0.0.1-SNAPSHOT.jar", new File
+                            ("../bdse-kvnode/target/bdse-kvnode-0.0.1-SNAPSHOT.jar"))
+                    .withFileFromClasspath("Dockerfile", "kvnode/Dockerfile"));
+            withExposedPorts(APPLICATION_PORT);
+            withEnv(Env.KVNODE_NAME, name);
+            withEnv(Env.SPRING_PROFILES_ACTIVE, profile);
+            withStartupTimeout(DEFAULT_TIMEOUT);
+            withNetworkAliases(name);
+
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        /**
+         * Returns REST base URL.
+         *
+         * If asked for predefined address, will return address that is known before the container is started,
+         * but custom network setup is required (ie, `Network.SHARED` cannot be used).
+         *
+         * Else, will give runtime address.
+         *
+         * @param getPredefinedAddress Set true to get predefined address.
+         */
+        public String getRESTBaseUrl(boolean getPredefinedAddress) {
+            if (getNetwork() == Network.SHARED && getPredefinedAddress)
+                throw new IllegalStateException("Cannot get predefined address in shared network setup.");
+            String host = name;
+            int port = APPLICATION_PORT;
+            if (!getPredefinedAddress) {
+                host = getContainerIpAddress();
+                port = getMappedPort(APPLICATION_PORT);
+            }
+            return String.format("http://%s:%d", host, port);
+        }
+    }
+
+    private Containers() { }
 }
