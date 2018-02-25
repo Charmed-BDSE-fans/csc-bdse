@@ -24,14 +24,14 @@ public class Containers {
                 .withStartupTimeout(Duration.of(30, SECONDS));
     }
 
-    public static GenericContainer kvnode(Network network, String profile) {
+    public static GenericContainer kvnode(Network network, String name, String profile) {
         return new GenericContainer(
                 new ImageFromDockerfile()
                         .withFileFromFile("target/bdse-kvnode-0.0.1-SNAPSHOT.jar", new File
                                 ("../bdse-kvnode/target/bdse-kvnode-0.0.1-SNAPSHOT.jar"))
                         .withFileFromClasspath("Dockerfile", "kvnode/Dockerfile"))
                 .withNetwork(network)
-                .withEnv(Env.KVNODE_NAME, "node-0")
+                .withEnv(Env.KVNODE_NAME, name)
                 .withEnv(Env.SPRING_PROFILES_ACTIVE, profile)
                 .withExposedPorts(APPLICATION_PORT)
                 .withStartupTimeout(Duration.of(30, SECONDS));

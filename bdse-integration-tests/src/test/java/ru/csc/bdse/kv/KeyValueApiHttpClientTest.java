@@ -18,8 +18,10 @@ import static java.time.temporal.ChronoUnit.SECONDS;
  */
 public class KeyValueApiHttpClientTest extends AbstractKeyValueApiTest {
 
+    private static final String NODE_NAME = "node-0";
+
     @ClassRule
-    public static final GenericContainer node = Containers.kvnode(Network.SHARED, InMemoryKeyValueApiConfig.PROFILE);
+    public static final GenericContainer node = Containers.kvnode(Network.SHARED, NODE_NAME, InMemoryKeyValueApiConfig.PROFILE);
 
     @Override
     protected KeyValueApi newKeyValueApi() {

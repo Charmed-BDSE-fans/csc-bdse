@@ -9,7 +9,6 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.shaded.io.netty.util.internal.ConcurrentSet;
 import ru.csc.bdse.config.InMemoryKeyValueApiConfig;
 import ru.csc.bdse.util.Containers;
-import ru.csc.bdse.util.Env;
 import ru.csc.bdse.util.Random;
 
 import java.util.*;
@@ -25,9 +24,10 @@ import static org.junit.Assert.*;
  * @author alesavin
  */
 public class KeyValueApiHttpClientTest2 {
+    private static final String KVNODE_NAME = "node-0";
     private static final Network testNetwork = Network.newNetwork();
     private static final GenericContainer db = Containers.postgres(testNetwork);
-    private static final GenericContainer kvnode = Containers.kvnode(testNetwork, InMemoryKeyValueApiConfig.PROFILE);
+    private static final GenericContainer kvnode = Containers.kvnode(testNetwork, KVNODE_NAME, InMemoryKeyValueApiConfig.PROFILE);
 
     @ClassRule
     public static final RuleChain ruleChain =
@@ -43,7 +43,7 @@ public class KeyValueApiHttpClientTest2 {
 
     @Before
     public void cleanDB() {
-        api.action(Env.KVNODE_NAME, NodeAction.UP);
+        api.action(KVNODE_NAME, NodeAction.UP);
         api.deleteAll();
     }
 
@@ -51,7 +51,7 @@ public class KeyValueApiHttpClientTest2 {
     public void concurrentPuts() {
         // simultanious puts for the same key value
 
-        api.action(Env.KVNODE_NAME, NodeAction.UP);
+        api.action(KVNODE_NAME, NodeAction.UP);
 
         final String key = Random.nextKey();
         final ArrayList<byte[]> dataCandidates = new ArrayList<>();
@@ -147,18 +147,18 @@ public class KeyValueApiHttpClientTest2 {
     public void actionUpDown() {
         // test up/down actions
 
-        api.action(Env.KVNODE_NAME, NodeAction.UP);
+        api.action(KVNODE_NAME, NodeAction.UP);
         final Set<NodeInfo> ups = api.getInfo();
         for (NodeInfo info : ups) {
-            if (Objects.equals(info.getName(), Env.KVNODE_NAME)) {
+            if (Objects.equals(info.getName(), KVNODE_NAME)) {
                 assertEquals(NodeStatus.UP, info.getStatus());
             }
         }
 
-        api.action(Env.KVNODE_NAME, NodeAction.DOWN);
+        api.action(KVNODE_NAME, NodeAction.DOWN);
         final Set<NodeInfo> downs = api.getInfo();
         for (NodeInfo info : downs) {
-            if (Objects.equals(info.getName(), Env.KVNODE_NAME)) {
+            if (Objects.equals(info.getName(), KVNODE_NAME)) {
                 assertEquals(NodeStatus.DOWN, info.getStatus());
             }
         }
@@ -170,7 +170,7 @@ public class KeyValueApiHttpClientTest2 {
 
         final int ELEMENTS_NUM = 1000;
 
-        api.action(Env.KVNODE_NAME, NodeAction.UP);
+        api.action(KVNODE_NAME, NodeAction.UP);
 
         String key = Random.nextKey();
         byte[] data = Random.nextValue();
@@ -181,7 +181,7 @@ public class KeyValueApiHttpClientTest2 {
             api.put(Random.nextKey(), Random.nextValue());
         }
 
-        api.action(Env.KVNODE_NAME, NodeAction.DOWN);
+        api.action(KVNODE_NAME, NodeAction.DOWN);
 
         Set<String> keys = api.getKeys("");
         assertEquals(0, keys.size());
@@ -191,11 +191,11 @@ public class KeyValueApiHttpClientTest2 {
 
         api.delete(key);
 
-        api.action(Env.KVNODE_NAME, NodeAction.UP);
+        api.action(KVNODE_NAME, NodeAction.UP);
 
         Optional<byte[]> respDataAfterDelete = api.get(key);
         assertTrue(respDataAfterDelete.isPresent());
-        assertEquals(data, respDataAfterDelete.get());
+        assertArrayEquals(data, respDataAfterDelete.get());
     }
 
     @Test
@@ -204,7 +204,7 @@ public class KeyValueApiHttpClientTest2 {
 
         final int ELEMENTS_NUM = 1000;
 
-        api.action(Env.KVNODE_NAME, NodeAction.UP);
+        api.action(KVNODE_NAME, NodeAction.UP);
 
         String key = Random.nextKey();
         byte[] data = Random.nextValue();
@@ -215,7 +215,7 @@ public class KeyValueApiHttpClientTest2 {
             api.put(Random.nextKey(), Random.nextValue());
         }
 
-        api.action(Env.KVNODE_NAME, NodeAction.DOWN);
+        api.action(KVNODE_NAME, NodeAction.DOWN);
 
         Optional<byte[]> respData = api.get(key);
         assertFalse(respData.isPresent());
@@ -227,13 +227,13 @@ public class KeyValueApiHttpClientTest2 {
 
         final int ELEMENTS_NUM = 1000;
 
-        api.action(Env.KVNODE_NAME, NodeAction.UP);
+        api.action(KVNODE_NAME, NodeAction.UP);
 
         for (int i = 0; i < ELEMENTS_NUM; i++) {
             api.put(Random.nextKey(), Random.nextValue());
         }
 
-        api.action(Env.KVNODE_NAME, NodeAction.DOWN);
+        api.action(KVNODE_NAME, NodeAction.DOWN);
 
         Set<String> keys = api.getKeys("");
         assertEquals(0, keys.size());
