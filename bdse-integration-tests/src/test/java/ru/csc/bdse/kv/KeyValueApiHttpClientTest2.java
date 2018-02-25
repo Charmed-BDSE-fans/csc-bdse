@@ -13,6 +13,7 @@ import ru.csc.bdse.util.Containers;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
@@ -67,7 +68,7 @@ public class KeyValueApiHttpClientTest2 {
         }
 
         try {
-            executorService.wait();
+            executorService.awaitTermination(30, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             fail("can't wait the end of puts");
         }
@@ -123,7 +124,7 @@ public class KeyValueApiHttpClientTest2 {
         }
 
         try {
-            executorService.wait();
+            executorService.awaitTermination(30, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             fail("can't wait the end of tasks");
         }
