@@ -9,7 +9,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import ru.csc.bdse.config.PostgresKeyValueApiConfig;
 import ru.csc.bdse.util.Containers;
@@ -20,7 +19,7 @@ import ru.csc.bdse.util.Containers;
 @ContextConfiguration(initializers = PostgresKeyValueApiTest.Initializer.class)
 public class PostgresKeyValueApiTest extends AbstractKeyValueApiTest {
     @ClassRule
-    public static final GenericContainer db = Containers.postgres(Network.SHARED);
+    public static final Containers.PostgresContainer<?> db = Containers.postgresDB().withNetwork(Network.SHARED);
 
     @Autowired
     private KeyValueApi api;
@@ -33,7 +32,7 @@ public class PostgresKeyValueApiTest extends AbstractKeyValueApiTest {
     public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
         @Override
         public void initialize(ConfigurableApplicationContext context) {
-            Containers.setupSpringContextForPostgres(context, db);
+            db.setupSpringContext(context);
         }
     }
 }
