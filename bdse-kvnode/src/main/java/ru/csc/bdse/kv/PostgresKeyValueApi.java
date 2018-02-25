@@ -41,11 +41,8 @@ public class PostgresKeyValueApi implements KeyValueApi {
     }
 
     @Override
-    @Transactional
     public void delete(String key) {
-        if (repository.exists(key)) {
-            repository.delete(key);
-        }
+        repository.deleteIfExists(key);
     }
 
     @Override
