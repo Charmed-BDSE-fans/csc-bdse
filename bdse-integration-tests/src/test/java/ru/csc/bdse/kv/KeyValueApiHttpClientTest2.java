@@ -103,7 +103,7 @@ public class KeyValueApiHttpClientTest2 {
     public void concurrentDeleteAndKeys() {
         // simultanious delete by key and keys listing
 
-        final int GROUPS_NUM = 1;
+        final int GROUPS_NUM = 10;
         final int ELEMENTS_NUM = 10000;
         final int REMOVE_NUM = 1000;
 
