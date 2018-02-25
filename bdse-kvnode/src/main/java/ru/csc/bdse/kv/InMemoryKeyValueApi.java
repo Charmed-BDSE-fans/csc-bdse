@@ -53,6 +53,11 @@ public class InMemoryKeyValueApi implements KeyValueApi {
     }
 
     @Override
+    public void deleteAll() {
+        map.clear();
+    }
+
+    @Override
     public Set<NodeInfo> getInfo() {
         return Collections.singleton(new NodeInfo(name, NodeStatus.UP));
     }

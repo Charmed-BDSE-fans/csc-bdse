@@ -6,6 +6,7 @@ import ru.csc.bdse.db.RecordRepository;
 
 import javax.transaction.Transactional;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -53,5 +54,10 @@ public class PostgresKeyValueApi implements KeyValueApi {
     @Override
     public void action(String node, NodeAction action) {
         throw new RuntimeException("action not implemented now");
+    }
+
+    @Override
+    public void deleteAll() {
+        repository.deleteAll();
     }
 }

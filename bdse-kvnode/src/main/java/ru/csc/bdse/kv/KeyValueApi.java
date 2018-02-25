@@ -37,4 +37,9 @@ public interface KeyValueApi {
      * Do action on specified node.
      */
     void action(String node, NodeAction action);
+
+    /**
+     * Deletes all values from the storage
+     */
+    void deleteAll();
 }

@@ -100,6 +100,15 @@ public class KeyValueApiHttpClient implements KeyValueApi {
         throw new RuntimeException("action not implemented now");
     }
 
+    @Override
+    public void deleteAll() {
+        final String url = baseUrl + "/deleteAll";
+        final ResponseEntity<byte[]> responseEntity = request(url, HttpMethod.DELETE, Constants.EMPTY_BYTE_ARRAY);
+        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+            throw new RuntimeException("Response error: " + responseEntity);
+        }
+    }
+
     private ResponseEntity<byte[]> request(final String url,
                                            final HttpMethod method,
                                            final byte[] body) {
