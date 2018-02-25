@@ -1,10 +1,11 @@
 package ru.csc.bdse.kv;
 
-import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -12,32 +13,25 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import ru.csc.bdse.Application;
 import ru.csc.bdse.config.PostgresKeyValueApiConfig;
 import ru.csc.bdse.util.Containers;
 
 @RunWith(SpringRunner.class)
+@SpringBootTest
 @ActiveProfiles(PostgresKeyValueApiConfig.PROFILE)
-@ContextConfiguration(
-        classes = Application.class,
-        initializers = PostgresKeyValueApiTest.Initializer.class)
-public class PostgresKeyValueApiTest extends AbstractKeyValueApiTest implements ApplicationContextAware {
+@ContextConfiguration(initializers = PostgresKeyValueApiTest.Initializer.class)
+public class PostgresKeyValueApiTest extends AbstractKeyValueApiTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PostgresKeyValueApiTest.class);
+
     @ClassRule
     public static final GenericContainer db = Containers.postgres(Network.SHARED);
 
-    private ApplicationContext context;
+    @Autowired
+    private KeyValueApi api;
 
     @Override
     protected KeyValueApi newKeyValueApi() {
-        Assert.assertNotNull(context);
-        KeyValueApi api = context.getBean(KeyValueApi.class);
-        Assert.assertNotNull(api);
         return api;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        context = applicationContext;
     }
 
     public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {

@@ -19,10 +19,18 @@ public abstract class AbstractKeyValueApiTest {
 
     protected abstract KeyValueApi newKeyValueApi();
 
-    private KeyValueApi api = newKeyValueApi();
+    private KeyValueApi api;
+
+    private synchronized KeyValueApi getKeyValueApi() {
+        if (api == null)
+            api = newKeyValueApi();
+        return api;
+    }
 
     @Test
     public void createValue() {
+        KeyValueApi api = getKeyValueApi();
+
         SoftAssertions softAssert = new SoftAssertions();
 
         String key = Random.nextKey();
@@ -40,6 +48,7 @@ public abstract class AbstractKeyValueApiTest {
 
     @Test
     public void updateValue() {
+        KeyValueApi api = getKeyValueApi();
         SoftAssertions softAssert = new SoftAssertions();
 
         String key = Random.nextKey();
@@ -59,6 +68,7 @@ public abstract class AbstractKeyValueApiTest {
 
     @Test
     public void deleteValue() {
+        KeyValueApi api = getKeyValueApi();
         SoftAssertions softAssert = new SoftAssertions();
 
         String key = Random.nextKey();
@@ -77,6 +87,7 @@ public abstract class AbstractKeyValueApiTest {
 
     @Test
     public void deleteNonexistentValue() {
+        KeyValueApi api = getKeyValueApi();
         SoftAssertions softAssert = new SoftAssertions();
 
         String nonexistentKey = Random.nextKey();
@@ -92,6 +103,7 @@ public abstract class AbstractKeyValueApiTest {
 
     @Test
     public void getClusterInfoValue() {
+        KeyValueApi api = getKeyValueApi();
         SoftAssertions softAssert = new SoftAssertions();
 
         Set<NodeInfo> info = api.getInfo();
@@ -103,6 +115,7 @@ public abstract class AbstractKeyValueApiTest {
 
     @Test
     public void getKeysByPrefix() {
+        KeyValueApi api = getKeyValueApi();
         SoftAssertions softAssert = new SoftAssertions();
 
         String prefix1 = "prefix1";
