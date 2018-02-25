@@ -73,15 +73,21 @@ public class Containers {
         }
 
         /**
-         * Returns connection URL.
+         * Returns database connection URL.
          *
-         * Note that you should provide custom Network to know this before starting the container!
-         * If you don't, the URL can only be evaluated in test runtime.
+         * If asked for predefined address, will return address that is known before the container is started,
+         * but custom network setup is required (ie, `Network.SHARED` cannot be used).
+         *
+         * Else, will give runtime address.
+         *
+         * @param getPredefinedAddress Set true to get predefined address.
          */
-        public String getConnectionUrl() {
+        public String getConnectionUrl(boolean getPredefinedAddress) {
+            if (getNetwork() == Network.SHARED && getPredefinedAddress)
+                throw new IllegalStateException("Cannot get predefined address in shared network setup.");
             String host = NETWORK_ALIAS;
             int port = POSTGRES_PORT;
-            if (getNetwork() == Network.SHARED) {
+            if (!getPredefinedAddress) {
                 host = getContainerIpAddress();
                 port = getMappedPort(POSTGRES_PORT);
             }
@@ -96,7 +102,7 @@ public class Containers {
          */
         public void setupSpringContext(ConfigurableApplicationContext context) {
             EnvironmentTestUtils.addEnvironment(context,
-                    String.format("%s=%s", Env.SPRING_DATASOURCE_URL, getConnectionUrl()));
+                    String.format("%s=%s", Env.SPRING_DATASOURCE_URL, getConnectionUrl(false)));
         }
     }
 
@@ -127,13 +133,19 @@ public class Containers {
         /**
          * Returns REST base URL.
          *
-         * Note that you should provide custom Network to know this before starting the container!
-         * If you don't, the URL can only be evaluated in test runtime.
+         * If asked for predefined address, will return address that is known before the container is started,
+         * but custom network setup is required (ie, `Network.SHARED` cannot be used).
+         *
+         * Else, will give runtime address.
+         *
+         * @param getPredefinedAddress Set true to get predefined address.
          */
-        public String getRESTBaseUrl() {
+        public String getRESTBaseUrl(boolean getPredefinedAddress) {
+            if (getNetwork() == Network.SHARED && getPredefinedAddress)
+                throw new IllegalStateException("Cannot get predefined address in shared network setup.");
             String host = name;
             int port = APPLICATION_PORT;
-            if (getNetwork() == Network.SHARED) {
+            if (!getPredefinedAddress) {
                 host = getContainerIpAddress();
                 port = getMappedPort(APPLICATION_PORT);
             }

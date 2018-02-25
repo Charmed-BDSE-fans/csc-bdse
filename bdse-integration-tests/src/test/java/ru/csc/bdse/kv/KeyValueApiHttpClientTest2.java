@@ -25,7 +25,7 @@ public class KeyValueApiHttpClientTest2 {
 //            .postgresDB()
 //            .withNetwork(testNetwork);
     private static final Containers.KVNodeContainer<?> kvnode = Containers
-//            .postgresNode(db.getConnectionUrl())
+//            .postgresNode(db.getConnectionUrl(true))
             .inMemoryNode()
             .withNetwork(testNetwork);
 
@@ -38,7 +38,7 @@ public class KeyValueApiHttpClientTest2 {
     private KeyValueApi api = newKeyValueApi();
 
     private KeyValueApi newKeyValueApi() {
-        return new KeyValueApiHttpClient(kvnode.getRESTBaseUrl());
+        return new KeyValueApiHttpClient(kvnode.getRESTBaseUrl(false));
     }
 
     @Test
