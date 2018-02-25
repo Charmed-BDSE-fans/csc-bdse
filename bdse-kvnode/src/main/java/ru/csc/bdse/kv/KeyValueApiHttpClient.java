@@ -97,7 +97,7 @@ public class KeyValueApiHttpClient implements KeyValueApi {
 
     @Override
     public void action(String node, NodeAction action) {
-        Require.nonNull(node, "null key");
+        Require.nonNull(node, "null node name");
 
         final String url = baseUrl + "/action/" + node + "/" + action.toString();
         final ResponseEntity<byte[]> responseEntity = request(url, HttpMethod.POST, Constants.EMPTY_BYTE_ARRAY);
