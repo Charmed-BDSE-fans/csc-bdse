@@ -4,6 +4,7 @@ import ru.csc.bdse.db.Record;
 import ru.csc.bdse.db.RecordKey;
 import ru.csc.bdse.db.RecordRepository;
 
+import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -40,8 +41,11 @@ public class PostgresKeyValueApi implements KeyValueApi {
     }
 
     @Override
+    @Transactional
     public void delete(String key) {
-        repository.delete(key);
+        if (repository.exists(key)) {
+            repository.delete(key);
+        }
     }
 
     @Override

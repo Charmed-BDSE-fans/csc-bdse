@@ -2,8 +2,6 @@ package ru.csc.bdse.kv;
 
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContextInitializer;
@@ -21,8 +19,6 @@ import ru.csc.bdse.util.Containers;
 @ActiveProfiles(PostgresKeyValueApiConfig.PROFILE)
 @ContextConfiguration(initializers = PostgresKeyValueApiTest.Initializer.class)
 public class PostgresKeyValueApiTest extends AbstractKeyValueApiTest {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PostgresKeyValueApiTest.class);
-
     @ClassRule
     public static final GenericContainer db = Containers.postgres(Network.SHARED);
 
