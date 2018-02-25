@@ -103,7 +103,7 @@ public class KeyValueApiHttpClientTest2 {
     public void concurrentDeleteAndKeys() {
         // simultanious delete by key and keys listing
 
-        final int GROUPS_NUM = 10;
+        final int GROUPS_NUM = 1;
         final int ELEMENTS_NUM = 10000;
         final int REMOVE_NUM = 1000;
 
@@ -126,7 +126,7 @@ public class KeyValueApiHttpClientTest2 {
             executorService.submit(() -> {
                 java.util.Random rand = new java.util.Random();
                 for (int j = 0; j < REMOVE_NUM; j++) {
-                    String key = Integer.toString(rand.nextInt() % (GROUPS_NUM * ELEMENTS_NUM));
+                    String key = Integer.toString(rand.nextInt(GROUPS_NUM * ELEMENTS_NUM));
                     api.delete(key);
                     removed.add(key);
                 }
