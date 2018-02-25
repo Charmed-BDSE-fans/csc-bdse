@@ -1,14 +1,16 @@
 package ru.csc.bdse.kv;
 
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.shaded.io.netty.util.internal.ConcurrentSet;
 import ru.csc.bdse.config.InMemoryKeyValueApiConfig;
+import ru.csc.bdse.util.Containers;
 import ru.csc.bdse.util.Env;
 import ru.csc.bdse.util.Random;
-import ru.csc.bdse.util.Containers;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -37,6 +39,12 @@ public class KeyValueApiHttpClientTest2 {
 
     private KeyValueApi newKeyValueApi() {
         return new KeyValueApiHttpClient(Containers.getKVNodeBaseUrl(kvnode));
+    }
+
+    @Before
+    public void cleanDB() {
+        api.action(Env.KVNODE_NAME, NodeAction.UP);
+        api.deleteAll();
     }
 
     @Test
@@ -92,31 +100,28 @@ public class KeyValueApiHttpClientTest2 {
     public void concurrentDeleteAndKeys() {
         // simultanious delete by key and keys listing
 
-        final int ELEMENTS_NUM = 100000;
-
-        api.action(Env.KVNODE_NAME, NodeAction.UP);
+        final int GROUPS_NUM = 10;
+        final int ELEMENTS_NUM = 10000;
+        final int REMOVE_NUM = 1000;
 
         ExecutorService executorService = Executors.newCachedThreadPool();
 
         byte[] data = new byte[] {1, 2, 3, 4};
-        for (int i = 0; i < ELEMENTS_NUM; i++) {
+        for (int i = 0; i < GROUPS_NUM * ELEMENTS_NUM; i++) {
             String key = Integer.toString(i);
             api.put(key, data);
         }
 
         final Set<String> allKeys = api.getKeys("");
-        assertEquals(ELEMENTS_NUM, allKeys.size());
+        assertEquals(GROUPS_NUM * ELEMENTS_NUM, allKeys.size());
 
-        final List<String> removed = new ArrayList<>();
+        final ConcurrentSet<String> removed = new ConcurrentSet<>();
 
-        final int REMOVE_NUM = ELEMENTS_NUM / 10;
-        final int REMOVE_GROUPS_NUM = REMOVE_NUM / 10;
-
-        for (int i = 0; i < REMOVE_GROUPS_NUM; i++) {
+        for (int i = 0; i < GROUPS_NUM; i++) {
             executorService.submit(() -> {
                 java.util.Random rand = new java.util.Random();
                 for (int j = 0; j < REMOVE_NUM; j++) {
-                    String key = Integer.toString(rand.nextInt() % ELEMENTS_NUM);
+                    String key = Integer.toString(rand.nextInt() % (GROUPS_NUM * ELEMENTS_NUM));
                     api.delete(key);
                     removed.add(key);
                 }
@@ -131,12 +136,10 @@ public class KeyValueApiHttpClientTest2 {
 
         final Set<String> remainingKeys = api.getKeys("");
 
-        assertEquals(ELEMENTS_NUM - REMOVE_NUM, remainingKeys.size());
+        assertEquals(GROUPS_NUM * ELEMENTS_NUM - removed.size(), remainingKeys.size());
 
-        for (String key : remainingKeys) {
-            for (String removedKey : removed) {
-                assertNotEquals(key, removedKey);
-            }
+        for (String key : removed) {
+            assertFalse(remainingKeys.contains(key));
         }
     }
 
