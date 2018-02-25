@@ -5,11 +5,11 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.testcontainers.containers.Network;
-import org.testcontainers.shaded.io.netty.util.internal.ConcurrentSet;
 import ru.csc.bdse.util.Containers;
 import ru.csc.bdse.util.Random;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -107,6 +107,8 @@ public class KeyValueApiHttpClientTest2 {
         final int ELEMENTS_NUM = 10000;
         final int REMOVE_NUM = 1000;
 
+        api.action(KVNODE_NAME, NodeAction.UP);
+
         ExecutorService executorService = Executors.newCachedThreadPool();
 
         byte[] data = new byte[] {1, 2, 3, 4};
@@ -118,7 +120,7 @@ public class KeyValueApiHttpClientTest2 {
         final Set<String> allKeys = api.getKeys("");
         assertEquals(GROUPS_NUM * ELEMENTS_NUM, allKeys.size());
 
-        final ConcurrentSet<String> removed = new ConcurrentSet<>();
+        final Set<String> removed = new ConcurrentSkipListSet<>();
 
         for (int i = 0; i < GROUPS_NUM; i++) {
             executorService.submit(() -> {
