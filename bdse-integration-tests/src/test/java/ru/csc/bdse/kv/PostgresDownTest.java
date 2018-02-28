@@ -13,7 +13,7 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class PostgresUpDownTest {
+public class PostgresDownTest {
     private static final String KVNODE_NAME = "node-0";
     private static final Network testNetwork = Network.newNetwork();
     private static final Containers.PostgresContainer<?> db = Containers
@@ -33,8 +33,8 @@ public class PostgresUpDownTest {
         return kvnode.getRESTBaseUrl(false);
     }
 
-    @Test
-    public void dbUpDown() {
+    @Test (expected = org.springframework.web.client.HttpServerErrorException.class)
+    public void dbDown() {
         KeyValueApi api = new KeyValueApiHttpClient(kvnodeUrl());
 
         final int ELEMENTS_NUM = 1000;
@@ -49,12 +49,7 @@ public class PostgresUpDownTest {
         }
 
         db.stop();
-        db.start();
 
-        Set<String> keys = api.getKeys("");
-        assertEquals(ELEMENTS_NUM + 1, keys.size());
-
-        Optional<byte[]> respData = api.get(key);
-        assertTrue(respData.isPresent());
+        api.put(Random.nextKey(), Random.nextValue());
     }
 }
