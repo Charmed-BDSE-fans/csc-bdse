@@ -64,9 +64,7 @@ public class Containers {
         private static final int POSTGRES_PORT = 5432;
 
         private PostgresContainer() {
-            super(new ImageFromDockerfile()
-                    .withFileFromClasspath("kvdb.sql", "db/kvdb.sql")
-                    .withFileFromClasspath("Dockerfile","db/Dockerfile"));
+            super("postgres:10-alpine");
             withExposedPorts(POSTGRES_PORT);
             withStartupTimeout(DEFAULT_TIMEOUT);
             withNetworkAliases(NETWORK_ALIAS);
