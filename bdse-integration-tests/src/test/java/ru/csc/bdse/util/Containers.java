@@ -4,11 +4,9 @@ import org.springframework.boot.test.util.EnvironmentTestUtils;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import org.testcontainers.images.builder.ImageFromDockerfile;
 import ru.csc.bdse.config.InMemoryKeyValueApiConfig;
 import ru.csc.bdse.config.PostgresKeyValueApiConfig;
 
-import java.io.File;
 import java.time.Duration;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
@@ -111,10 +109,7 @@ public class Containers {
         private final String name;
 
         private KVNodeContainer(String profile, String name) {
-            super(new ImageFromDockerfile()
-                    .withFileFromFile("target/bdse-kvnode-0.0.1-SNAPSHOT.jar", new File
-                            ("../bdse-kvnode/target/bdse-kvnode-0.0.1-SNAPSHOT.jar"))
-                    .withFileFromClasspath("Dockerfile", "kvnode/Dockerfile"));
+            super("charmed-bdse-fans/bdse-kvnode:latest");
             withExposedPorts(APPLICATION_PORT);
             withEnv(Env.KVNODE_NAME, name);
             withEnv(Env.SPRING_PROFILES_ACTIVE, profile);

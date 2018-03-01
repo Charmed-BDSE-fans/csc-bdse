@@ -1,8 +1,8 @@
 package ru.csc.bdse.config;
 
 import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import ru.csc.bdse.db.RecordRepository;
 import ru.csc.bdse.kv.KeyValueApi;
