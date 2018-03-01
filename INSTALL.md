@@ -15,6 +15,6 @@
 
 # Сборка и запуск интеграционных тестов
 ```
-./mvnw --projects bdse-kvnode clean package
+./mvnw --projects bdse-kvnode clean package # В том числе соберёт контейнер
 ./mvnw --projects bdse-integration-tests --also-make test
 ```
