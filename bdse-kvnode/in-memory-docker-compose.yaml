@@ -1,0 +1,8 @@
+version: "3"
+services:
+  kvnode:
+    image: charmed-bdse-fans/bdse-kvnode
+    environment:
+      - SPRING_PROFILES_ACTIVE=in_memory
+    ports:
+      - 8080
