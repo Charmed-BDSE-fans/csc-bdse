@@ -27,6 +27,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
 		<testcontainers.version>1.6.0</testcontainers.version>
+		<docker.maven.plugin.version>0.24.0</docker.maven.plugin.version>
 	</properties>
 
 	<dependencyManagement>
@@ -58,6 +59,48 @@
 	</dependencies>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>io.fabric8</groupId>
+					<artifactId>docker-maven-plugin</artifactId>
+					<version>${docker.maven.plugin.version}</version>
+					<configuration>
+						<images>
+							<image>
+								<name>charmed-bdse-fans/${project.artifactId}</name>
+								<build>
+									<dockerFileDir>${project.basedir}/docker</dockerFileDir>
+									<assembly>
+										<name>.</name>
+										<inline>
+											<files>
+												<file>
+													<source>
+														target/${project.build.finalName}.jar
+													</source>
+													<outputDirectory>.</outputDirectory>
+												</file>
+											</files>
+										</inline>
+									</assembly>
+								</build>
+							</image>
+						</images>
+					</configuration>
+					<executions>
+						<execution>
+							<id>package</id>
+							<phase>package</phase>
+							<goals>
+								<goal>build</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
