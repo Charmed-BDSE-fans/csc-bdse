@@ -1,4 +1,4 @@
-package ru.csc.bdse.app;
+package ru.csc.bdse.app.v1.phonebook;
 
 import java.util.Set;
 
