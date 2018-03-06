@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class PostgresKeyValueApi implements KeyValueApi {
     private final String name;
     private final RecordRepository repository;
-    private NodeStatus status;
+    private volatile NodeStatus status;
 
     public PostgresKeyValueApi(String name, RecordRepository repository) {
         this.name = name;
