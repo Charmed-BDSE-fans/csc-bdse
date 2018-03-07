@@ -1,12 +1,15 @@
 package ru.csc.bdse.app.v2.contorller;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.*;
+import ru.csc.bdse.app.Application;
 import ru.csc.bdse.app.v1.phonebook.Record;
 import ru.csc.bdse.app.v2.phonebook.PhoneBookApi;
 
 import java.util.Set;
 
 @RestController
+@Profile(Application.V2_PROFILE)
 public class PhoneBookApiController implements PhoneBookApi<Record> {
 
     private final PhoneBookApi<Record> api;
