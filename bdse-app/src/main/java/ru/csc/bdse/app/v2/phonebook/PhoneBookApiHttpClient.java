@@ -1,6 +1,6 @@
 package ru.csc.bdse.app.v2.phonebook;
 
-import ru.csc.bdse.app.base.PhoneBookApi;
+import ru.csc.bdse.app.common.PhoneBookApi;
 
 import java.util.Set;
 

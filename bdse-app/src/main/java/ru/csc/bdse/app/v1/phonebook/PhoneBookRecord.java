@@ -1,6 +1,6 @@
 package ru.csc.bdse.app.v1.phonebook;
 
-import ru.csc.bdse.app.base.Record;
+import ru.csc.bdse.app.common.Record;
 
 import java.util.Collections;
 import java.util.Set;

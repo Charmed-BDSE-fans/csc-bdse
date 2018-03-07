@@ -1,7 +1,7 @@
 package ru.csc.bdse.app.v2.phonebook;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import ru.csc.bdse.app.base.Record;
+import ru.csc.bdse.app.common.Record;
 
 import java.util.*;
 
