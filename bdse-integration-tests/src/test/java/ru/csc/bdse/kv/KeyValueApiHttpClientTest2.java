@@ -4,7 +4,9 @@ import org.junit.Before;
 import org.junit.Test;
 import ru.csc.bdse.util.Random;
 
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,105 +40,79 @@ public abstract class KeyValueApiHttpClientTest2 {
     public void concurrentPuts() {
         // simultanious puts for the same key value
 
-        api.action(KVNODE_NAME, NodeAction.UP);
-
-        final String key = Random.nextKey();
-        final ArrayList<byte[]> dataCandidates = new ArrayList<>();
-
         final int CPU_NUM = Runtime.getRuntime().availableProcessors();
-        final int DATA_CANDIDATES_MAX = 1000;
-
-        for (int i = 0; i < DATA_CANDIDATES_MAX * CPU_NUM; i++) {
-            dataCandidates.add(Random.nextValue());
-        }
+        final int MAX_VAL = 1000;
 
         ExecutorService executorService = Executors.newFixedThreadPool(CPU_NUM);
 
         for (int i = 0; i < CPU_NUM; i++) {
-            final int taskID = i;
             executorService.submit(() -> {
-                for (int j = 0; j < DATA_CANDIDATES_MAX; j++) {
-                    int k = taskID * DATA_CANDIDATES_MAX + j;
-                    api.put(key, dataCandidates.get(k));
+                for (int j = 0; j < MAX_VAL; j++) {
+                    api.put("key", String.valueOf(j).getBytes());
                 }
             });
         }
 
+        executorService.shutdown();
+
         try {
-            executorService.awaitTermination(30, TimeUnit.SECONDS);
+            while (!executorService.awaitTermination(1, TimeUnit.SECONDS));
         } catch (InterruptedException e) {
-            fail("can't wait the end of puts");
+            e.printStackTrace();
         }
 
-        final Optional<byte[]> resp = api.get(key);
+
+        final Optional<byte[]> resp = api.get("key");
 
         assertTrue(resp.isPresent());
-
-        final byte[] result = resp.get();
-
-        for (int i = 0; i < CPU_NUM * DATA_CANDIDATES_MAX; i++) {
-            if (Arrays.equals(result, dataCandidates.get(i))) {
-                return;
-            }
-        }
-
-        fail("get impossible data");
     }
 
     @Test
     public void concurrentDeleteAndKeys() {
         // simultanious delete by key and keys listing
 
-        final int GROUPS_NUM = 10;
-        final int ELEMENTS_NUM = 10000;
-        final int REMOVE_NUM = 1000;
+        final int CPU_NUM = Runtime.getRuntime().availableProcessors();
+        final int ELEMENTS_NUM = 1000;
+        final int REMOVE_NUM = 500;
 
-        api.action(KVNODE_NAME, NodeAction.UP);
-
-        ExecutorService executorService = Executors.newCachedThreadPool();
+        ExecutorService executorService = Executors.newFixedThreadPool(CPU_NUM);
 
         byte[] data = new byte[] {1, 2, 3, 4};
-        for (int i = 0; i < GROUPS_NUM * ELEMENTS_NUM; i++) {
+        for (int i = 0; i < CPU_NUM * ELEMENTS_NUM; i++) {
             String key = Integer.toString(i);
             api.put(key, data);
         }
 
-        final Set<String> allKeys = api.getKeys("");
-        assertEquals(GROUPS_NUM * ELEMENTS_NUM, allKeys.size());
-
         final Set<String> removed = new ConcurrentSkipListSet<>();
 
-        for (int i = 0; i < GROUPS_NUM; i++) {
+        for (int i = 0; i < CPU_NUM; i++) {
             executorService.submit(() -> {
                 java.util.Random rand = new java.util.Random();
                 for (int j = 0; j < REMOVE_NUM; j++) {
-                    String key = Integer.toString(rand.nextInt(GROUPS_NUM * ELEMENTS_NUM));
+                    String key = Integer.toString(rand.nextInt(CPU_NUM * ELEMENTS_NUM));
                     api.delete(key);
                     removed.add(key);
                 }
             });
         }
 
+        executorService.shutdown();
+
         try {
-            executorService.awaitTermination(30, TimeUnit.SECONDS);
+            while (!executorService.awaitTermination(1, TimeUnit.SECONDS));
         } catch (InterruptedException e) {
-            fail("can't wait the end of tasks");
+            e.printStackTrace();
         }
 
         final Set<String> remainingKeys = api.getKeys("");
 
-        assertEquals(GROUPS_NUM * ELEMENTS_NUM - removed.size(), remainingKeys.size());
-
-        for (String key : removed) {
-            assertFalse(remainingKeys.contains(key));
-        }
+        assertEquals(CPU_NUM * ELEMENTS_NUM - removed.size(), remainingKeys.size());
     }
 
     @Test
     public void actionUpDown() {
         // test up/down actions
 
-        api.action(KVNODE_NAME, NodeAction.UP);
         final Set<NodeInfo> ups = api.getInfo();
         for (NodeInfo info : ups) {
             if (Objects.equals(info.getName(), KVNODE_NAME)) {
@@ -158,8 +134,6 @@ public abstract class KeyValueApiHttpClientTest2 {
         // test put if node/container was stopped
 
         final int ELEMENTS_NUM = 1000;
-
-        api.action(KVNODE_NAME, NodeAction.UP);
 
         String key = Random.nextKey();
         byte[] data = Random.nextValue();
@@ -193,8 +167,6 @@ public abstract class KeyValueApiHttpClientTest2 {
 
         final int ELEMENTS_NUM = 1000;
 
-        api.action(KVNODE_NAME, NodeAction.UP);
-
         String key = Random.nextKey();
         byte[] data = Random.nextValue();
 
@@ -215,8 +187,6 @@ public abstract class KeyValueApiHttpClientTest2 {
         // test getKeysByPrefix if node/container was stopped
 
         final int ELEMENTS_NUM = 1000;
-
-        api.action(KVNODE_NAME, NodeAction.UP);
 
         for (int i = 0; i < ELEMENTS_NUM; i++) {
             api.put(Random.nextKey(), Random.nextValue());
