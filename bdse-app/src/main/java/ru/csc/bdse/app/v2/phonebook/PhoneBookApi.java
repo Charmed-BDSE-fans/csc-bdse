@@ -10,7 +10,7 @@ import java.util.Set;
  *
  * @author alesavin
  */
-public interface PhoneBookApi<R extends Record> extends ru.csc.bdse.app.v1.phonebook.PhoneBookApi {
+public interface PhoneBookApi<R extends Record> extends ru.csc.bdse.app.v1.phonebook.PhoneBookApi<R> {
     /**
      * Get all records associated with nickname literal
      */
