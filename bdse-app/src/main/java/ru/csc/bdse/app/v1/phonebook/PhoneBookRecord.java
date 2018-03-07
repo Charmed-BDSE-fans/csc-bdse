@@ -1,13 +1,17 @@
 package ru.csc.bdse.app.v1.phonebook;
 
-import java.util.LinkedHashSet;
+import ru.csc.bdse.app.base.Record;
+
+import java.util.Collections;
 import java.util.Set;
 
 public class PhoneBookRecord implements Record {
 
-    private final String name;
-    private final String surname;
-    private final String phone;
+    private String name;
+    private String surname;
+    private String phone;
+
+    protected PhoneBookRecord() { }
 
     public PhoneBookRecord(String name, String surname, String phone) {
         this.name = name;
@@ -15,10 +19,29 @@ public class PhoneBookRecord implements Record {
         this.phone = phone;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getSurname() {
+        return surname;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    @Override
+    public String toString() {
+        return "PhoneBookRecord{" +
+                "name='" + name + '\'' +
+                ", surname='" + surname + '\'' +
+                ", phone='" + phone + '\'' +
+                '}';
+    }
+
     @Override
     public Set<Character> literals() {
-        LinkedHashSet<Character> s = new LinkedHashSet<>();
-        s.add(surname.charAt(0));
-        return  s;
+        return Collections.singleton(surname.charAt(0));
     }
 }
