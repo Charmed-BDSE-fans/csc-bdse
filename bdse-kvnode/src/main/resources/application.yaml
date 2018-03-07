@@ -1,0 +1,23 @@
+---
+spring:
+  profiles: in_memory
+  datasource:
+    initialize: false
+  autoconfigure:
+    exclude:
+    - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+    - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+---
+spring:
+  profiles: postgres
+  jpa:
+    database: postgresql
+    show-sql: false
+    hibernate.ddl-auto: update
+  datasource:
+    platform: postgres
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+---
