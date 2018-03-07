@@ -56,10 +56,11 @@ public abstract class KeyValueApiHttpClientTest2 {
         executorService.shutdown();
 
         try {
-            executorService.awaitTermination(1, TimeUnit.SECONDS);
+            while (!executorService.awaitTermination(1, TimeUnit.SECONDS));
         } catch (InterruptedException e) {
-            fail("can't wait the end of puts");
+            e.printStackTrace();
         }
+
 
         final Optional<byte[]> resp = api.get("key");
 
@@ -98,9 +99,9 @@ public abstract class KeyValueApiHttpClientTest2 {
         executorService.shutdown();
 
         try {
-            executorService.awaitTermination(1, TimeUnit.SECONDS);
+            while (!executorService.awaitTermination(1, TimeUnit.SECONDS));
         } catch (InterruptedException e) {
-            fail("can't wait the end of tasks");
+            e.printStackTrace();
         }
 
         final Set<String> remainingKeys = api.getKeys("");
