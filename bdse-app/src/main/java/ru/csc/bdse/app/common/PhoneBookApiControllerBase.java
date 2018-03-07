@@ -17,7 +17,7 @@ public class PhoneBookApiControllerBase<R extends Record> implements PhoneBookAp
         api.put(record);
     }
 
-    @RequestMapping(method = RequestMethod.DELETE, value = "/phonebook/")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/phonebook")
     @Override
     public void delete(@RequestBody R record) {
         api.delete(record);

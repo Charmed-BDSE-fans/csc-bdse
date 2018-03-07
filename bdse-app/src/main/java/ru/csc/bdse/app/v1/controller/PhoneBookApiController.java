@@ -7,8 +7,10 @@ import ru.csc.bdse.app.common.PhoneBookApiControllerBase;
 import ru.csc.bdse.app.v1.phonebook.PhoneBookRecord;
 
 @RestController
-@RequestMapping("/v1/")
+@RequestMapping(PhoneBookApiController.URL_PREFIX)
 public class PhoneBookApiController extends PhoneBookApiControllerBase<PhoneBookRecord> {
+    public static final String URL_PREFIX = "/v1/";
+
     public PhoneBookApiController(PhoneBookApi<PhoneBookRecord> api) {
         super(api);
     }

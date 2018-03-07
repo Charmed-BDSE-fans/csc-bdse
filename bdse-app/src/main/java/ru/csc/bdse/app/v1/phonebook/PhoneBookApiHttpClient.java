@@ -1,23 +1,10 @@
 package ru.csc.bdse.app.v1.phonebook;
 
-import ru.csc.bdse.app.common.PhoneBookApi;
+import ru.csc.bdse.app.common.PhoneBookApiHttpClientBase;
+import ru.csc.bdse.app.v1.controller.PhoneBookApiController;
 
-import java.util.Set;
-
-public class PhoneBookApiHttpClient implements PhoneBookApi<PhoneBookRecord> {
-    @Override
-    public void put(PhoneBookRecord record) {
-        // TODO
-    }
-
-    @Override
-    public void delete(PhoneBookRecord record) {
-        // TODO
-    }
-
-    @Override
-    public Set<PhoneBookRecord> get(char literal) {
-        // TODO
-        return null;
+public class PhoneBookApiHttpClient extends PhoneBookApiHttpClientBase<PhoneBookRecord> {
+    public PhoneBookApiHttpClient(String baseUrl) {
+        super(String.format("%s/%s/", baseUrl, PhoneBookApiController.URL_PREFIX), PhoneBookRecord.class);
     }
 }
