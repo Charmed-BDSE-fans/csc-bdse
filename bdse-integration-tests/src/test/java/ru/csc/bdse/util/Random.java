@@ -20,11 +20,11 @@ public class Random {
     }
 
     public static String randomString() {
-        return String.valueOf(random.nextLong());
+        return String.format("%x", Math.abs(random.nextLong()));
     }
 
     public static String nextKey() {
-        return String.valueOf(random.nextLong());
+        return String.valueOf(Math.abs(random.nextLong()));
     }
 
     public static byte[] nextValue() {
