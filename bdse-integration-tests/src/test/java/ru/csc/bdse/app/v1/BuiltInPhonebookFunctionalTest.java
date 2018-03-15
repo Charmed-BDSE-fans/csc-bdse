@@ -11,8 +11,7 @@ public class BuiltInPhonebookFunctionalTest extends AbstractPhoneBookFunctionalT
     @Override
     protected PhoneBookRecord modifyContent(PhoneBookRecord record) {
         String newPhone = Random.randomString();
-        PhoneBookRecord phoneBookRecord = (PhoneBookRecord) record;
-        return new PhoneBookRecord(phoneBookRecord.getName(), phoneBookRecord.getSurname(), newPhone);
+        return new PhoneBookRecord(record.getName(), record.getSurname(), newPhone);
     }
 
     @Override

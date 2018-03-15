@@ -51,7 +51,7 @@ public abstract class AbstractPhoneBookFunctionalTest<R extends Record> {
         // write some data and read it
         PhoneBookApi<R> api = getPhoneBookApi();
 
-        final int RECORDS_NUM = 10;
+        final int RECORDS_NUM = 100;
 
         Set<R> added = new HashSet<>();
 
