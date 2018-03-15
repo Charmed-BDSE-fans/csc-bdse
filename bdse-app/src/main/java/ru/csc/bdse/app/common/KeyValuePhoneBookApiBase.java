@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class PhoneBookApiClientBase<R extends Record> implements PhoneBookApi<R> {
+public abstract class KeyValuePhoneBookApiBase<R extends Record> implements PhoneBookApi<R> {
     private final static String LETTER_PREFIX = "/letter/";
     private final static String DATA_PREFIX = "/data/";
 
@@ -43,7 +43,7 @@ public abstract class PhoneBookApiClientBase<R extends Record> implements PhoneB
         return String.format("%s%d", DATA_PREFIX, id);
     }
 
-    public PhoneBookApiClientBase(KeyValueApi keyValueApi, Class<R> recordClass) {
+    public KeyValuePhoneBookApiBase(KeyValueApi keyValueApi, Class<R> recordClass) {
         this.keyValueApi = keyValueApi;
         this.recordClass = recordClass;
     }
