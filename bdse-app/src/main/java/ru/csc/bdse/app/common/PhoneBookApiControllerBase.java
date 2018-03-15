@@ -30,5 +30,7 @@ public class PhoneBookApiControllerBase<R extends Record> {
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/deleteAll")
-    public void deleteAll() { api.deleteAll(); }
+    public void deleteAll() {
+        api.deleteAll();
+    }
 }

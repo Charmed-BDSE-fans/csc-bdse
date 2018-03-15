@@ -47,7 +47,9 @@ public class KeyValueApiController {
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/deleteAll")
-    public void deleteAll() { keyValueApi.deleteAll(); }
+    public void deleteAll() {
+        keyValueApi.deleteAll();
+    }
 
     @RequestMapping(method = RequestMethod.GET, value = "/info")
     public Set<NodeInfo> getInfo() {

@@ -77,7 +77,8 @@ public class PhoneBookRecord extends ru.csc.bdse.app.v1.phonebook.PhoneBookRecor
     @Override
     public Set<Character> literals() {
         Set<Character> result = new HashSet<>(super.literals());
-        result.add(getNickname().charAt(0));
+        if (getNickname() != null)
+            result.add(getNickname().charAt(0));
         return result;
     }
 }

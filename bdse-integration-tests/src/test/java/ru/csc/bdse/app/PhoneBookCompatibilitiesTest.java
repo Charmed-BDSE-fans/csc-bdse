@@ -5,13 +5,13 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.testcontainers.containers.Network;
-import ru.csc.bdse.util.Containers;
-import ru.csc.bdse.util.Random;
 import ru.csc.bdse.app.common.PhoneBookApi;
+import ru.csc.bdse.util.Containers;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Arrays;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * Test have to be implemented
@@ -19,97 +19,55 @@ import java.util.stream.Stream;
  * @author alesavin
  */
 public class PhoneBookCompatibilitiesTest {
-    private static final String KVNODE_NAME_0 = "node-10";
-    private static final String KVNODE_NAME_1 = "node-11";
-
     private static final Network testNetwork = Network.newNetwork();
+
     private static final Containers.PostgresContainer db = Containers
             .postgresDB()
             .withNetwork(testNetwork);
 
-    private static final Containers.KVNodeContainer kvnode0 = Containers
-            .postgresNode(KVNODE_NAME_0, db.getConnectionUrl(true))
-            .withNetwork(testNetwork);
-    private static final Containers.KVNodeContainer kvnode1 = Containers
-            .postgresNode(KVNODE_NAME_1, db.getConnectionUrl(true))
+    private static final Containers.KVNodeContainer kvNode = Containers
+            .postgresNode(db.getConnectionUrl(true))
             .withNetwork(testNetwork);
 
-    private static final Containers.AppContainer app0 = Containers
-            .applicationWithRemoteKV(Containers.AppContainer.Version.V1, kvnode0.getRESTBaseUrl(true))
-            .withNetwork(testNetwork);
-    private static final Containers.AppContainer app1 = Containers
-            .applicationWithRemoteKV(Containers.AppContainer.Version.V2, kvnode1.getRESTBaseUrl(true))
+    private static final Containers.AppContainer appV1 = Containers
+            .applicationWithRemoteKV(Containers.AppContainer.Version.V1, kvNode.getRESTBaseUrl(true))
             .withNetwork(testNetwork);
 
-    private PhoneBookApi<ru.csc.bdse.app.v1.phonebook.PhoneBookRecord> api0 = null;
-    private PhoneBookApi<ru.csc.bdse.app.v2.phonebook.PhoneBookRecord> api1 = null;
+    private static final Containers.AppContainer appV2 = Containers
+            .applicationWithRemoteKV(Containers.AppContainer.Version.V2, kvNode.getRESTBaseUrl(true))
+            .withNetwork(testNetwork);
 
     @ClassRule
     public static final RuleChain ruleChain =
             RuleChain.outerRule(testNetwork)
                     .around(db)
-                    .around(kvnode0)
-                    .around(kvnode1)
-                    .around(app0)
-                    .around(app1);
+                    .around(kvNode)
+                    .around(appV1)
+                    .around(appV2);
 
-//    @Override
-//    protected PhoneBookRecord modifyContent(PhoneBookRecord record) {
-//        String newPhone = Random.randomString();
-//        return new PhoneBookRecord(record.getName(), record.getSurname(), newPhone);
-//    }
-
-//    @Override
-//    protected PhoneBookRecord modifyContent(PhoneBookRecord record) {
-//        String p = Random.randomString();
-//        List<String> phones = record.getPhones().stream()
-//                .filter(o -> Random.randomBool())
-//                .collect(Collectors.toList());
-//
-//        phones.add(p);
-//
-//        return new PhoneBookRecord(record.getName(), record.getNickname(), record.getSurname(), phones);
-//    }
-
-    protected ru.csc.bdse.app.v2.phonebook.PhoneBookRecord randomRecordV2() {
-        String name = Random.randomString();
-        String surname = Random.randomString();
-        String nickname = Random.randomString();
-        List<String> phones = Stream.generate(Random::nextKey)
-                .limit(Random.randomInt(10) + 1)
-                .collect(Collectors.toList());
-
-        return new ru.csc.bdse.app.v2.phonebook.PhoneBookRecord(name, surname, nickname, phones);
+    private ru.csc.bdse.app.v1.phonebook.PhoneBookApiHttpClient clientV1() {
+        return new ru.csc.bdse.app.v1.phonebook.PhoneBookApiHttpClient(appV1.getRESTBaseUrl(false));
     }
 
-    protected ru.csc.bdse.app.v1.phonebook.PhoneBookRecord randomRecordV1() {
-        String name = Random.randomString();
-        String surname = Random.randomString();
-        String phone = Random.randomString();
-        return new ru.csc.bdse.app.v1.phonebook.PhoneBookRecord(name, surname, phone);
+    private ru.csc.bdse.app.v2.phonebook.PhoneBookApiHttpClient clientV2() {
+        return new ru.csc.bdse.app.v2.phonebook.PhoneBookApiHttpClient(appV2.getRESTBaseUrl(false));
     }
 
-
-    protected ru.csc.bdse.app.v1.phonebook.PhoneBookApiHttpClient clientV1() {
-        return new ru.csc.bdse.app.v1.phonebook.PhoneBookApiHttpClient(app0.getRESTBaseUrl(false));
-    }
-
-    protected ru.csc.bdse.app.v2.phonebook.PhoneBookApiHttpClient clientV2() {
-        return new ru.csc.bdse.app.v2.phonebook.PhoneBookApiHttpClient(app1.getRESTBaseUrl(false));
-    }
+    private PhoneBookApi<ru.csc.bdse.app.v1.phonebook.PhoneBookRecord> apiV1;
+    private PhoneBookApi<ru.csc.bdse.app.v2.phonebook.PhoneBookRecord> apiV2;
 
     private synchronized PhoneBookApi<ru.csc.bdse.app.v1.phonebook.PhoneBookRecord> getPhoneBookApiV1() {
-        if (api0 == null) {
-            api0 = clientV1();
+        if (apiV1 == null) {
+            apiV1 = clientV1();
         }
-        return api0;
+        return apiV1;
     }
 
     private synchronized PhoneBookApi<ru.csc.bdse.app.v2.phonebook.PhoneBookRecord> getPhoneBookApiV2() {
-        if (api1 == null) {
-            api1 = clientV2();
+        if (apiV2 == null) {
+            apiV2 = clientV2();
         }
-        return api1;
+        return apiV2;
     }
 
     @Before
@@ -120,16 +78,50 @@ public class PhoneBookCompatibilitiesTest {
 
     @Test
     public void write10read11() {
-        //TODO write data in book 1.0 format and read in book 1.1
+        ru.csc.bdse.app.v1.phonebook.PhoneBookRecord original
+                = new ru.csc.bdse.app.v1.phonebook.PhoneBookRecord("aba", "caba", "+apple");
+        getPhoneBookApiV1().put(original);
+        Set<ru.csc.bdse.app.v2.phonebook.PhoneBookRecord> records = getPhoneBookApiV2().get(original.getSurname().charAt(0));
+        assertEquals(1, records.size());
+
+        ru.csc.bdse.app.v2.phonebook.PhoneBookRecord actual = records.stream().findFirst().get();
+        assertEquals(original.getId(), actual.getId());
+        assertEquals(original.getName(), actual.getName());
+        assertEquals(original.getSurname(), actual.getSurname());
+        assertEquals(original.getPhone(), actual.getPhone());
+
+        assertNull(actual.getNickname());
+        assertArrayEquals(new String[] {original.getPhone()}, actual.getPhones().toArray());
     }
 
     @Test
     public void write11read10() {
-        // TODO write data in book 1.1 format and read in book 1.0
+        ru.csc.bdse.app.v2.phonebook.PhoneBookRecord original
+                = new ru.csc.bdse.app.v2.phonebook.PhoneBookRecord(
+                        "aba", "caba", "daba", Arrays.asList("+apple", "+peanut")
+        );
+        getPhoneBookApiV2().put(original);
+        Set<ru.csc.bdse.app.v1.phonebook.PhoneBookRecord> records = getPhoneBookApiV1().get(original.getSurname().charAt(0));
+        assertEquals(1, records.size());
+
+        ru.csc.bdse.app.v1.phonebook.PhoneBookRecord actual = records.stream().findFirst().get();
+        assertEquals(original.getId(), actual.getId());
+        assertEquals(original.getName(), actual.getName());
+        assertEquals(original.getSurname(), actual.getSurname());
+        assertEquals(original.getPhone(), actual.getPhone());
     }
 
     @Test
     public void write10erasure11() {
-        // TODO write data in book 1.0 format and erasure in book 1.1
+        ru.csc.bdse.app.v1.phonebook.PhoneBookRecord original
+                = new ru.csc.bdse.app.v1.phonebook.PhoneBookRecord("aba", "caba", "+apple");
+        getPhoneBookApiV1().put(original);
+        Set<ru.csc.bdse.app.v2.phonebook.PhoneBookRecord> records = getPhoneBookApiV2().get(original.getSurname().charAt(0));
+        assertEquals(1, records.size());
+
+        ru.csc.bdse.app.v2.phonebook.PhoneBookRecord original2 = records.stream().findFirst().get();
+        getPhoneBookApiV2().delete(original2);
+
+        assertTrue(getPhoneBookApiV1().get(original.getSurname().charAt(0)).isEmpty());
     }
 }
