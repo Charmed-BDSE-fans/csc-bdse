@@ -24,6 +24,9 @@ public class Env {
     public static final String SPRING_DATASOURCE_URL_PROPERTY = "spring.datasource.url";
     public static final String SPRING_DATASOURCE_URL = springPropertyToEnv(SPRING_DATASOURCE_URL_PROPERTY);
 
+    public static final String KVNODE_BASEURL_PROPERTY = "kvNode.baseUrl";
+    public static final String KVNODE_BASEURL = springPropertyToEnv(KVNODE_BASEURL_PROPERTY);
+
     public static Optional<String> get(final String name) {
         return Optional.ofNullable(System.getenv(name));
     }

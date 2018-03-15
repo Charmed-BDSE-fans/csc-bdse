@@ -8,8 +8,8 @@ import ru.csc.bdse.kv.node.KeyValueApi;
 import ru.csc.bdse.kv.node.KeyValueApiHttpClient;
 
 @Configuration
-@Profile(KevValueApiHttpClientConfig.PROFILE)
-public class KevValueApiHttpClientConfig {
+@Profile(KeyValueApiHttpClientConfig.PROFILE)
+public class KeyValueApiHttpClientConfig {
     public static final String PROFILE = "kvnode-client";
 
     @Value("${kvNode.baseUrl}")
