@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import ru.csc.bdse.app.utils.SerializationUtils;
+import ru.csc.bdse.util.Constants;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -55,6 +56,15 @@ public class PhoneBookApiHttpClientBase<R extends Record> implements PhoneBookAp
         }
 
         return new HashSet<>(Arrays.asList(readAs(responseEntity.getBody(), recordArrayClass)));
+    }
+
+    @Override
+    public void deleteAll() {
+        final String url = baseUrl + "/deleteAll";
+        final ResponseEntity<byte[]> responseEntity = request(url, HttpMethod.DELETE, Constants.EMPTY_BYTE_ARRAY);
+        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+            throw new RuntimeException("Response error: " + responseEntity);
+        }
     }
 
     private <T> ResponseEntity<byte[]> request(String url, HttpMethod method, T body) {

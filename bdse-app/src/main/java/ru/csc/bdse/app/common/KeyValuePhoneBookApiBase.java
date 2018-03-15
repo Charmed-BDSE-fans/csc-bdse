@@ -33,7 +33,7 @@ public abstract class KeyValuePhoneBookApiBase<R extends Record> implements Phon
     }
 
     private static int getIdFromLetterKey(String key) {
-        return Integer.parseInt(key.replaceAll("^[^|]+|", ""));
+        return Integer.parseInt(key.replaceAll("^[^|]+\\|", ""));
     }
 
     private static String makeDataKey(int id) {
@@ -88,5 +88,10 @@ public abstract class KeyValuePhoneBookApiBase<R extends Record> implements Phon
         for (String letterKey : letterKeys) {
             keyValueApi.delete(letterKey);
         }
+    }
+
+    @Override
+    public void deleteAll() {
+        keyValueApi.deleteAll();
     }
 }

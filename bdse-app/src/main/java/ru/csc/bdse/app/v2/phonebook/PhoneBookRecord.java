@@ -56,6 +56,15 @@ public class PhoneBookRecord extends ru.csc.bdse.app.v1.phonebook.PhoneBookRecor
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        PhoneBookRecord that = (PhoneBookRecord) o;
+        return Objects.equals(extension, that.extension);
+    }
+
+    @Override
     public String toString() {
         return "PhoneBookRecord{" +
                 "name='" + getName() + '\'' +

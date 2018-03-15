@@ -4,8 +4,6 @@ import org.junit.ClassRule;
 import org.junit.rules.RuleChain;
 import org.testcontainers.containers.Network;
 import ru.csc.bdse.app.AbstractPhoneBookFunctionalTest;
-import ru.csc.bdse.app.common.PhoneBookApiHttpClientBase;
-import ru.csc.bdse.app.common.Record;
 import ru.csc.bdse.app.v2.phonebook.PhoneBookApiHttpClient;
 import ru.csc.bdse.app.v2.phonebook.PhoneBookRecord;
 import ru.csc.bdse.util.Containers;
@@ -16,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class PhoneBookFunctionalTest extends AbstractPhoneBookFunctionalTest {
+public class PhoneBookFunctionalTest extends AbstractPhoneBookFunctionalTest<PhoneBookRecord> {
     private static final String KVNODE_NAME = "node-0";
     private static final Network testNetwork = Network.newNetwork();
     private static final Containers.PostgresContainer db = Containers
@@ -28,7 +26,7 @@ public class PhoneBookFunctionalTest extends AbstractPhoneBookFunctionalTest {
             .withNetwork(testNetwork);
 
     private static final Containers.AppContainer app = Containers
-            .applicationWithRemoteKV(Version.V2, db.getConnectionUrl(true))
+            .applicationWithRemoteKV(Version.V2, kvnode.getRESTBaseUrl(true))
             .withNetwork(testNetwork);
 
     @ClassRule
@@ -39,21 +37,19 @@ public class PhoneBookFunctionalTest extends AbstractPhoneBookFunctionalTest {
                     .around(app);
 
     @Override
-    protected Record modifyContent(Record r) {
+    protected PhoneBookRecord modifyContent(PhoneBookRecord record) {
         String p = Random.randomString();
-        PhoneBookRecord phoneBookRecord = (PhoneBookRecord) r;
-        List<String> phones = phoneBookRecord.getPhones().stream()
+        List<String> phones = record.getPhones().stream()
                 .filter(o -> Random.randomBool())
                 .collect(Collectors.toList());
 
         phones.add(p);
 
-
-        return new PhoneBookRecord(phoneBookRecord.getName(), phoneBookRecord.getNickname(), phoneBookRecord.getSurname(), phones);
+        return new PhoneBookRecord(record.getName(), record.getNickname(), record.getSurname(), phones);
     }
 
     @Override
-    protected Record randomRecord() {
+    protected PhoneBookRecord randomRecord() {
         String name = Random.randomString();
         String surname = Random.randomString();
         String nickname = Random.randomString();
@@ -65,7 +61,7 @@ public class PhoneBookFunctionalTest extends AbstractPhoneBookFunctionalTest {
     }
 
     @Override
-    protected PhoneBookApiHttpClientBase client() {
+    protected PhoneBookApiHttpClient client() {
         return new PhoneBookApiHttpClient(app.getRESTBaseUrl(false));
     }
 }

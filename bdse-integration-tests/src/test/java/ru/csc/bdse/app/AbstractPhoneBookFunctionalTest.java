@@ -16,25 +16,32 @@ import static org.junit.Assert.assertTrue;
  *
  * @author alesavin
  */
-public abstract class AbstractPhoneBookFunctionalTest {
+public abstract class AbstractPhoneBookFunctionalTest<R extends Record> {
+    protected abstract R randomRecord();
 
-    protected abstract Record randomRecord();
+    protected abstract R modifyContent(R record);
 
-    protected abstract Record modifyContent(Record r);
+    protected abstract PhoneBookApi<R> client();
 
-    protected abstract PhoneBookApi client();
+    private PhoneBookApi<R> api = null;
 
-    private PhoneBookApi api = client();
+    private synchronized PhoneBookApi<R> getPhoneBookApi() {
+        if (api == null) {
+            api = client();
+        }
+        return api;
+    }
 
     @Before
     public void cleanPB() {
-        // api.deleteAll();
+        getPhoneBookApi().deleteAll();
     }
 
     @Test
     public void getFromEmptyBook() {
         // get records from an empty phone book
-        Set<? extends Record> s = api.get('c');
+        PhoneBookApi<R> api = getPhoneBookApi();
+        Set<R> s = api.get('c');
 
         assertTrue(s.isEmpty());
     }
@@ -42,24 +49,23 @@ public abstract class AbstractPhoneBookFunctionalTest {
     @Test
     public void putAndGet() {
         // write some data and read it
+        PhoneBookApi<R> api = getPhoneBookApi();
 
-        final int RECORDS_NUM = 100;
+        final int RECORDS_NUM = 10;
 
-        final Set<Record> added = new HashSet<>();
+        Set<R> added = new HashSet<>();
 
         for (int i = 0; i < RECORDS_NUM; i++) {
-            Record r = randomRecord();
+            R r = randomRecord();
             api.put(r);
             added.add(r);
         }
 
+        Set<R> found = new HashSet<>(added);
 
-        final Set<Record> found = new HashSet<>();
-        found.addAll(added);
-
-        for (Record r : added) {
+        for (R r : added) {
             char c = new ArrayList<>(r.literals()).get(0);
-            Set<Record> s = api.get(c);
+            Set<R> s = api.get(c);
             found.removeAll(s);
         }
 
@@ -69,24 +75,25 @@ public abstract class AbstractPhoneBookFunctionalTest {
     @Test
     public void erasure() {
         // cancel some records
+        PhoneBookApi<R> api = getPhoneBookApi();
 
         final int RECORDS_NUM = 100;
 
-        final Set<Record> added = new HashSet<>();
+        final Set<R> added = new HashSet<>();
 
         for (int i = 0; i < RECORDS_NUM; i++) {
-            Record r = randomRecord();
+            R r = randomRecord();
             api.put(r);
             added.add(r);
         }
 
-        for (Record r : added) {
+        for (R r : added) {
             api.delete(r);
         }
 
-        for (Record r : added) {
+        for (R r : added) {
             char c = new ArrayList<>(r.literals()).get(0);
-            Set<Record> s = api.get(c);
+            Set<R> s = api.get(c);
             assertTrue(s.isEmpty());
         }
     }
@@ -94,25 +101,26 @@ public abstract class AbstractPhoneBookFunctionalTest {
     @Test
     public void update() {
         // update data and put some data twice
+        PhoneBookApi<R> api = getPhoneBookApi();
 
         final int RECORDS_NUM = 100;
 
-        final Record record = randomRecord();
+        final R record = randomRecord();
 
         api.put(record);
 
         for (int i = 0; i < RECORDS_NUM; i++) {
-            final Record r = randomRecord();
+            final R r = randomRecord();
             api.put(r);
         }
 
-        final Record modifiedRecord = modifyContent(record);
+        final R modifiedRecord = modifyContent(record);
 
         api.put(modifiedRecord);
 
         char c = new ArrayList<>(modifiedRecord.literals()).get(0);
 
-        Set<Record> found = api.get(c);
+        Set<R> found = api.get(c);
 
         assertTrue(found.contains(modifiedRecord));
     }

@@ -190,7 +190,7 @@ public class Containers {
     }
 
     public static final class AppContainer extends LocatableContainer<AppContainer> {
-        private static final int APPLICATION_PORT = 8081;
+        private static final int APPLICATION_PORT = 8080;
         private static final String NETWORK_ALIAS = "app";
 
         public enum Version {

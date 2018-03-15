@@ -28,4 +28,8 @@ public class PhoneBookApiControllerBase<R extends Record> implements PhoneBookAp
     public Set<R> get(@PathVariable char literal) {
         return api.get(literal);
     }
+
+    @RequestMapping(method = RequestMethod.DELETE, value = "/deleteAll")
+    @Override
+    public void deleteAll() { api.deleteAll(); }
 }

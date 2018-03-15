@@ -1,8 +1,5 @@
 package ru.csc.bdse.app.common;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -26,4 +23,9 @@ public interface PhoneBookApi<R extends Record> {
      * Get all records associated with literal
      */
     Set<R> get(char literal);
+
+    /**
+     * Deletes everything
+     */
+    void deleteAll();
 }
