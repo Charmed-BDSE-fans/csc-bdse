@@ -14,7 +14,7 @@ public class KeyValueApiHttpClientTest extends AbstractKeyValueApiTest {
     private static final String NODE_NAME = "node-0";
 
     @ClassRule
-    public static final Containers.KVNodeContainer<?> node = Containers
+    public static final Containers.KVNodeContainer node = Containers
             .inMemoryNode(NODE_NAME)
             .withNetwork(Network.SHARED);
 

@@ -21,22 +21,22 @@ public class Containers {
     /**
      * Creates Postgres DB container.
      */
-    public static <T extends PostgresContainer<T>> PostgresContainer<T> postgresDB() {
-        return new PostgresContainer<>();
+    public static PostgresContainer postgresDB() {
+        return new PostgresContainer();
     }
 
     /**
      * Creates in-memory key-value node with given name.
      * @param name Node name.
      */
-    public static <T extends KVNodeContainer<T>> KVNodeContainer<T> inMemoryNode(String name) {
-        return new KVNodeContainer<>(InMemoryKeyValueApiConfig.PROFILE, name);
+    public static KVNodeContainer inMemoryNode(String name) {
+        return new KVNodeContainer(InMemoryKeyValueApiConfig.PROFILE, name);
     }
 
     /**
      * Creates in-memory key-value node with default name.
      */
-    public static <T extends KVNodeContainer<T>> KVNodeContainer<T> inMemoryNode() {
+    public static KVNodeContainer inMemoryNode() {
         return inMemoryNode(KVNodeContainer.DEFAULT_NODE_NAME);
     }
 
@@ -45,8 +45,8 @@ public class Containers {
      * @param name Node name.
      * @param connectionUrl Database connection URL.
      */
-    public static <T extends KVNodeContainer<T>> KVNodeContainer<T> postgresNode(String name, String connectionUrl) {
-        return new KVNodeContainer<T>(PostgresKeyValueApiConfig.PROFILE, name)
+    public static KVNodeContainer postgresNode(String name, String connectionUrl) {
+        return new KVNodeContainer(PostgresKeyValueApiConfig.PROFILE, name)
                 .withEnv(Env.SPRING_DATASOURCE_URL, connectionUrl);
     }
 
@@ -54,11 +54,11 @@ public class Containers {
      * Creates Postgres-based key-value node with default name.
      * @param connectionUrl Database connection URL.
      */
-    public static <T extends KVNodeContainer<T>> KVNodeContainer<T> postgresNode(String connectionUrl) {
+    public static KVNodeContainer postgresNode(String connectionUrl) {
         return postgresNode(KVNodeContainer.DEFAULT_NODE_NAME, connectionUrl);
     }
 
-    public static final class PostgresContainer<SELF extends PostgresContainer<SELF>> extends GenericContainer<SELF> {
+    public static final class PostgresContainer extends GenericContainer<PostgresContainer> {
         private static final String NETWORK_ALIAS = "postgres";
         private static final int POSTGRES_PORT = 5432;
 
@@ -103,7 +103,7 @@ public class Containers {
         }
     }
 
-    public static final class KVNodeContainer<SELF extends KVNodeContainer<SELF>> extends GenericContainer<SELF> {
+    public static final class KVNodeContainer extends GenericContainer<KVNodeContainer> {
         private static final String DEFAULT_NODE_NAME = "kv-node-0";
         private static final int APPLICATION_PORT = 8080;
 

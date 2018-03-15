@@ -20,7 +20,7 @@ import ru.csc.bdse.util.Containers;
 @ContextConfiguration(initializers = PostgresKeyValueApiTest.Initializer.class)
 public class PostgresKeyValueApiTest extends AbstractKeyValueApiTest {
     @ClassRule
-    public static final Containers.PostgresContainer<?> db = Containers.postgresDB().withNetwork(Network.SHARED);
+    public static final Containers.PostgresContainer db = Containers.postgresDB().withNetwork(Network.SHARED);
 
     @Autowired
     private KeyValueApi api;
