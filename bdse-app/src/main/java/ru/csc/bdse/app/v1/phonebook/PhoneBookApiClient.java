@@ -7,7 +7,6 @@ import ru.csc.bdse.app.common.PhoneBookApiClientBase;
 import ru.csc.bdse.kv.KeyValueApi;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,6 +20,7 @@ public class PhoneBookApiClient extends PhoneBookApiClientBase<PhoneBookRecord> 
     public void put(PhoneBookRecord record) {
         String keyData = makeDataKey(record.getId());
         String keyLetter = makeLetterKey(record.getSurname().charAt(0));
+
         byte[] value;
         try {
             value = mapper.writeValueAsBytes(record);
@@ -28,6 +28,7 @@ public class PhoneBookApiClient extends PhoneBookApiClientBase<PhoneBookRecord> 
             LOGGER.warn("Failed to put due to a bad JSON");
             return;
         }
+
         keyValueApi.put(keyData, value);
         keyValueApi.put(keyLetter, keyData.getBytes());
     }
