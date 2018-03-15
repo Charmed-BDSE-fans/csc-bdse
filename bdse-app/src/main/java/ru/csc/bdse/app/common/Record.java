@@ -8,6 +8,10 @@ import java.util.Set;
  * @author alesavin
  */
 public interface Record {
+    /**
+     * Returns record id
+     */
+    int getId();
 
     /**
      * Returns literals, associated with Record
