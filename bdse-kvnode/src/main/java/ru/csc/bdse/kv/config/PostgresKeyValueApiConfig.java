@@ -13,7 +13,7 @@ import ru.csc.bdse.kv.util.Env;
 @EnableJpaRepositories(basePackageClasses = RecordRepository.class)
 @Profile(PostgresKeyValueApiConfig.PROFILE)
 public class PostgresKeyValueApiConfig {
-    public static final String PROFILE = "postgres";
+    public static final String PROFILE = "kvnode-postgres";
 
     @Bean
     KeyValueApi postgresNode(RecordRepository repository) {

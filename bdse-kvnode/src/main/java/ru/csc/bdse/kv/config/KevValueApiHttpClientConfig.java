@@ -1,0 +1,22 @@
+package ru.csc.bdse.kv.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import ru.csc.bdse.kv.node.KeyValueApi;
+import ru.csc.bdse.kv.node.KeyValueApiHttpClient;
+
+@Configuration
+@Profile(KevValueApiHttpClientConfig.PROFILE)
+public class KevValueApiHttpClientConfig {
+    public static final String PROFILE = "kvnode-client";
+
+    @Value("${kvNode.baseUrl}")
+    private String keyValueBaseUrl;
+
+    @Bean
+    public KeyValueApi keyValueApiHttpClient() {
+        return new KeyValueApiHttpClient(keyValueBaseUrl);
+    }
+}

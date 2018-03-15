@@ -10,7 +10,7 @@ import ru.csc.bdse.kv.util.Env;
 @SpringBootConfiguration
 @Profile(InMemoryKeyValueApiConfig.PROFILE)
 public class InMemoryKeyValueApiConfig {
-    public static final String PROFILE = "in_memory";
+    public static final String PROFILE = "kvnode-in_memory";
 
     @Bean
     KeyValueApi inMemoryNode() {

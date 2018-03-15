@@ -7,7 +7,7 @@ services:
   kvnode:
     image: charmed-bdse-fans/bdse-kvnode
     environment:
-      - SPRING_PROFILES_ACTIVE=postgres
+      - SPRING_PROFILES_ACTIVE=kvnode-postgres
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
     ports:
       - 8080
