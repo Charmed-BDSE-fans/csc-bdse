@@ -11,20 +11,20 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class KeyValuePhoneBookApiBase<R extends Record> implements PhoneBookApi<R> {
-    private final static String LETTER_PREFIX = ".letter.";
-    private final static String DATA_PREFIX = ".data.";
+    private final static String LETTER_PREFIX = "letter-";
+    private final static String DATA_PREFIX = "data-";
 
     private final KeyValueApi keyValueApi;
     private final ObjectMapper mapper = SerializationUtils.getObjectMapperForRecords();
     private final Class<R> recordClass;
 
-    private static final byte[] EMPTY_ARRAY = new byte[0];
+    private static final byte[] FAKE_BODY = new byte[] { 0 };
 
     private static <R extends Record> Set<String> makeLetterKeys(R record) {
         return record
                 .literals()
                 .stream()
-                .map(c -> String.format("%s%c|%d", LETTER_PREFIX, c, record.getId()))
+                .map(c -> String.format("%s%c%d", LETTER_PREFIX, c, record.getId()))
                 .collect(Collectors.toSet());
     }
 
@@ -33,7 +33,7 @@ public abstract class KeyValuePhoneBookApiBase<R extends Record> implements Phon
     }
 
     private static int getIdFromLetterKey(String key) {
-        return Integer.parseInt(key.replaceAll("^[^|]+\\|", ""));
+        return Integer.parseInt(key.replaceAll(String.format("^%s.", LETTER_PREFIX), ""));
     }
 
     private static String makeDataKey(int id) {
@@ -58,7 +58,7 @@ public abstract class KeyValuePhoneBookApiBase<R extends Record> implements Phon
 
         keyValueApi.put(dataKey, data);
         for (String letterKey: letterKeys) {
-            keyValueApi.put(letterKey, EMPTY_ARRAY);
+            keyValueApi.put(letterKey, FAKE_BODY);
         }
     }
 

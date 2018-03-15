@@ -1,6 +1,6 @@
 package ru.csc.bdse.kv.node;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -11,8 +11,6 @@ import ru.csc.bdse.util.Constants;
 import ru.csc.bdse.util.Encoding;
 import ru.csc.bdse.util.Require;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -22,10 +20,15 @@ import java.util.Set;
  * @author semkagtn
  */
 public class KeyValueApiHttpClient implements KeyValueApi {
-
     private final String baseUrl;
     private final RestTemplate rest = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final ParameterizedTypeReference<byte[]> BYTES_ARRAY_TYPE =
+            new ParameterizedTypeReference<byte[]>() { };
+    private static final ParameterizedTypeReference<Set<String>> STRING_SET_TYPE =
+            new ParameterizedTypeReference<Set<String>>() { };
+    private static final ParameterizedTypeReference<Set<NodeInfo>> NODEINFO_SET_TYPE =
+            new ParameterizedTypeReference<Set<NodeInfo>>() { };
 
     public KeyValueApiHttpClient(final String baseUrl) {
         Require.nonEmpty(baseUrl, "empty base url");
@@ -38,7 +41,7 @@ public class KeyValueApiHttpClient implements KeyValueApi {
         Require.nonNull(value, "null value");
 
         final String url = baseUrl + "/key-value/" + key;
-        final ResponseEntity<byte[]> responseEntity = request(url, HttpMethod.PUT, value);
+        final ResponseEntity<byte[]> responseEntity = request(url, HttpMethod.PUT, value, BYTES_ARRAY_TYPE);
         if (responseEntity.getStatusCode() != HttpStatus.OK) {
             throw new RuntimeException("Response error: " + responseEntity);
         }
@@ -49,7 +52,11 @@ public class KeyValueApiHttpClient implements KeyValueApi {
         Require.nonNull(key, "null key");
 
         final String url = baseUrl + "/key-value/" + key;
-        final ResponseEntity<byte[]> responseEntity = request(url, HttpMethod.GET, Constants.EMPTY_BYTE_ARRAY);
+        final ResponseEntity<byte[]> responseEntity = request(
+                url, HttpMethod.GET,
+                Constants.EMPTY_BYTE_ARRAY,
+                BYTES_ARRAY_TYPE
+        );
         switch (responseEntity.getStatusCode()) {
             case OK:
                 return Optional.of(responseEntity.getBody());
@@ -65,9 +72,14 @@ public class KeyValueApiHttpClient implements KeyValueApi {
         Require.nonNull(prefix, "null prefix");
 
         final String url = baseUrl + "/key-value?prefix=" + Encoding.encodeUrl(prefix);
-        final ResponseEntity<byte[]> responseEntity = request(url, HttpMethod.GET, Constants.EMPTY_BYTE_ARRAY);
+        final ResponseEntity<Set<String>> responseEntity = request(
+                url,
+                HttpMethod.GET,
+                Constants.EMPTY_BYTE_ARRAY,
+                STRING_SET_TYPE
+        );
         if (responseEntity.getStatusCode() == HttpStatus.OK) {
-            return new HashSet<>(Arrays.asList(readAs(responseEntity.getBody(), String[].class)));
+            return responseEntity.getBody();
         } else {
             throw new RuntimeException("Response error: " + responseEntity);
         }
@@ -87,9 +99,13 @@ public class KeyValueApiHttpClient implements KeyValueApi {
     @Override
     public Set<NodeInfo> getInfo() {
         final String url = baseUrl + "/info";
-        final ResponseEntity<byte[]> responseEntity = request(url, HttpMethod.GET, Constants.EMPTY_BYTE_ARRAY);
+        final ResponseEntity<Set<NodeInfo>> responseEntity = request(
+                url, HttpMethod.GET,
+                Constants.EMPTY_BYTE_ARRAY,
+                NODEINFO_SET_TYPE
+        );
         if (responseEntity.getStatusCode() == HttpStatus.OK) {
-            return new HashSet<>(Arrays.asList(readAs(responseEntity.getBody(), NodeInfo[].class)));
+            return responseEntity.getBody();
         } else {
             throw new RuntimeException("Response error: " + responseEntity);
         }
@@ -115,21 +131,15 @@ public class KeyValueApiHttpClient implements KeyValueApi {
         }
     }
 
-    private ResponseEntity<byte[]> request(final String url,
-                                           final HttpMethod method,
-                                           final byte[] body) {
-        try {
-            return rest.exchange(url, method, new HttpEntity<>(body), byte[].class);
-        } catch (HttpClientErrorException e) {
-            return new ResponseEntity<>(Constants.EMPTY_BYTE_ARRAY, e.getStatusCode());
-        }
+    private <T> ResponseEntity<byte[]> request(String url, HttpMethod method, T body) {
+        return request(url, method, body, BYTES_ARRAY_TYPE);
     }
 
-    private <T> T readAs(byte[] src, Class<T> valueType) {
+    private <T, U> ResponseEntity<U> request(String url, HttpMethod method, T body, ParameterizedTypeReference<U> type) {
         try {
-            return objectMapper.readValue(src, valueType);
-        } catch (Exception e) {
-            throw new RuntimeException("Response error: " + e.getMessage());
+            return rest.exchange(url, method, new HttpEntity<>(body), type);
+        } catch (HttpClientErrorException e) {
+            return new ResponseEntity<>((U) null, e.getStatusCode());
         }
     }
 }
