@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class KeyValuePhoneBookApiBase<R extends Record> implements PhoneBookApi<R> {
-    private final static String LETTER_PREFIX = "/letter/";
-    private final static String DATA_PREFIX = "/data/";
+    private final static String LETTER_PREFIX = ".letter.";
+    private final static String DATA_PREFIX = ".data.";
 
     private final KeyValueApi keyValueApi;
     private final ObjectMapper mapper = SerializationUtils.getObjectMapperForRecords();

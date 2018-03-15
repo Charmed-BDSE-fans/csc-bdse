@@ -50,7 +50,7 @@ public class PhoneBookApiHttpClientBase<R extends Record> implements PhoneBookAp
     @Override
     public Set<R> get(char literal) {
         String url = baseUrl + "/phonebook/" + literal;
-        ResponseEntity<byte[]> responseEntity = request(url, HttpMethod.DELETE, null);
+        ResponseEntity<byte[]> responseEntity = request(url, HttpMethod.GET, null);
         if (responseEntity.getStatusCode() != HttpStatus.OK) {
             throw new RuntimeException("Response error: " + responseEntity);
         }
