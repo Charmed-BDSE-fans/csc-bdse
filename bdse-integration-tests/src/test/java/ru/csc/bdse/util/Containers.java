@@ -4,8 +4,9 @@ import org.springframework.boot.test.util.EnvironmentTestUtils;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import ru.csc.bdse.config.InMemoryKeyValueApiConfig;
-import ru.csc.bdse.config.PostgresKeyValueApiConfig;
+import ru.csc.bdse.kv.config.InMemoryKeyValueApiConfig;
+import ru.csc.bdse.kv.config.PostgresKeyValueApiConfig;
+import ru.csc.bdse.kv.util.Env;
 
 import java.time.Duration;
 

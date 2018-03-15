@@ -10,7 +10,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.Network;
-import ru.csc.bdse.config.PostgresKeyValueApiConfig;
+import ru.csc.bdse.kv.config.PostgresKeyValueApiConfig;
+import ru.csc.bdse.kv.node.KeyValueApi;
 import ru.csc.bdse.util.Containers;
 
 @RunWith(SpringRunner.class)

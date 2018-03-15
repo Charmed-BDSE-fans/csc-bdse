@@ -1,4 +1,4 @@
-package ru.csc.bdse.db;
+package ru.csc.bdse.kv.db;
 
 public interface RecordKey {
     String getKey();

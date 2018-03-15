@@ -1,4 +1,4 @@
-package ru.csc.bdse.kv;
+package ru.csc.bdse.kv.node;
 
 import ru.csc.bdse.util.Require;
 

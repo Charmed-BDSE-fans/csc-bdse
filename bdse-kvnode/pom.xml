@@ -11,7 +11,7 @@
 	<artifactId>bdse-kvnode</artifactId>
 
 	<properties>
-		<start-class>ru.csc.bdse.Application</start-class>
+		<start-class>ru.csc.bdse.kv.Application</start-class>
 	</properties>
 
 	<dependencies>

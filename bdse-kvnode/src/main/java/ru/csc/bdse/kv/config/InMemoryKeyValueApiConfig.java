@@ -1,11 +1,11 @@
-package ru.csc.bdse.config;
+package ru.csc.bdse.kv.config;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
-import ru.csc.bdse.kv.InMemoryKeyValueApi;
-import ru.csc.bdse.kv.KeyValueApi;
-import ru.csc.bdse.util.Env;
+import ru.csc.bdse.kv.node.InMemoryKeyValueApi;
+import ru.csc.bdse.kv.node.KeyValueApi;
+import ru.csc.bdse.kv.util.Env;
 
 @SpringBootConfiguration
 @Profile(InMemoryKeyValueApiConfig.PROFILE)

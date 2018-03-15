@@ -1,4 +1,4 @@
-package ru.csc.bdse.util;
+package ru.csc.bdse.kv.util;
 
 import java.util.Optional;
 import java.util.UUID;
