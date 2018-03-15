@@ -1,10 +1,10 @@
-package ru.csc.bdse.controller;
+package ru.csc.bdse.kv.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.csc.bdse.kv.KeyValueApi;
-import ru.csc.bdse.kv.NodeAction;
-import ru.csc.bdse.kv.NodeInfo;
+import ru.csc.bdse.kv.node.KeyValueApi;
+import ru.csc.bdse.kv.node.NodeAction;
+import ru.csc.bdse.kv.node.NodeInfo;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;

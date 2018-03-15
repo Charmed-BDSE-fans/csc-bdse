@@ -1,4 +1,4 @@
-package ru.csc.bdse;
+package ru.csc.bdse.kv;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

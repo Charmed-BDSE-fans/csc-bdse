@@ -1,87 +1,70 @@
-package ru.csc.bdse.kv;
+package ru.csc.bdse.kv.node;
 
-import ru.csc.bdse.util.Require;
+import ru.csc.bdse.kv.db.Record;
+import ru.csc.bdse.kv.db.RecordKey;
+import ru.csc.bdse.kv.db.RecordRepository;
+import ru.csc.bdse.kv.node.KeyValueApi;
+import ru.csc.bdse.kv.node.NodeAction;
+import ru.csc.bdse.kv.node.NodeInfo;
+import ru.csc.bdse.kv.node.NodeStatus;
 
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
-/**
- * Trivial in-memory implementation of the storage unit.
- *
- * @author semkagtn
- */
-public class InMemoryKeyValueApi implements KeyValueApi {
-
+public class PostgresKeyValueApi implements KeyValueApi {
     private final String name;
-    private final ConcurrentMap<String, byte[]> map = new ConcurrentHashMap<>();
-    private NodeStatus status;
+    private final RecordRepository repository;
+    private volatile NodeStatus status;
 
-    public InMemoryKeyValueApi(final String name) {
-        Require.nonEmpty(name, "empty name");
+    public PostgresKeyValueApi(String name, RecordRepository repository) {
         this.name = name;
+        this.repository = repository;
         status = NodeStatus.UP;
     }
 
     @Override
-    public void put(final String key, final byte[] value) {
-        Require.nonEmpty(key, "empty key");
-        Require.nonNull(value, "null value");
-
+    public void put(String key, byte[] value) {
         if (status == NodeStatus.DOWN) {
             return;
         }
 
-        map.put(key, value);
+        repository.save(new Record(key, value));
     }
 
     @Override
-    public Optional<byte[]> get(final String key) {
-        Require.nonEmpty(key, "empty key");
-
+    public Optional<byte[]> get(String key) {
         if (status == NodeStatus.DOWN) {
             return Optional.empty();
         }
 
-        return Optional.ofNullable(map.get(key));
+        return repository
+                .findByKey(key)
+                .map(Record::getValue);
     }
 
     @Override
     public Set<String> getKeys(String prefix) {
-        Require.nonNull(prefix, "null prefix");
-
         if (status == NodeStatus.DOWN) {
             return Collections.emptySet();
         }
 
-        return map.keySet()
+        return repository
+                .findByKeyStartingWith(prefix)
                 .stream()
-                .filter(key -> key.startsWith(prefix))
+                .map(RecordKey::getKey)
                 .collect(Collectors.toSet());
     }
 
     @Override
-    public void delete(final String key) {
-        Require.nonEmpty(key, "empty key");
-
+    public void delete(String key) {
         if (status == NodeStatus.DOWN) {
             return;
         }
 
-        map.remove(key);
-    }
-
-    @Override
-    public void deleteAll() {
-        if (status == NodeStatus.DOWN) {
-            return;
-        }
-
-        map.clear();
+        repository.deleteIfExists(key);
     }
 
     @Override
@@ -105,4 +88,12 @@ public class InMemoryKeyValueApi implements KeyValueApi {
         }
     }
 
+    @Override
+    public void deleteAll() {
+        if (status == NodeStatus.DOWN) {
+            return;
+        }
+
+        repository.deleteAll();
+    }
 }

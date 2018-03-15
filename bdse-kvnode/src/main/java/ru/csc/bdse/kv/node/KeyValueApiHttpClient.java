@@ -1,4 +1,4 @@
-package ru.csc.bdse.kv;
+package ru.csc.bdse.kv.node;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpEntity;

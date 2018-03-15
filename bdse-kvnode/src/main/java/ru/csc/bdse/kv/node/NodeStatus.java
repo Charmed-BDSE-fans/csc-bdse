@@ -1,4 +1,4 @@
-package ru.csc.bdse.kv;
+package ru.csc.bdse.kv.node;
 
 /**
  * Status of the node

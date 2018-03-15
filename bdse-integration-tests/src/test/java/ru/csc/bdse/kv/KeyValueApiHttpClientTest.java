@@ -2,6 +2,8 @@ package ru.csc.bdse.kv;
 
 import org.junit.ClassRule;
 import org.testcontainers.containers.Network;
+import ru.csc.bdse.kv.node.KeyValueApi;
+import ru.csc.bdse.kv.node.KeyValueApiHttpClient;
 import ru.csc.bdse.util.Containers;
 
 /**

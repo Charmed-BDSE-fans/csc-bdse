@@ -2,6 +2,9 @@ package ru.csc.bdse.kv;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Test;
+import ru.csc.bdse.kv.node.KeyValueApi;
+import ru.csc.bdse.kv.node.NodeInfo;
+import ru.csc.bdse.kv.node.NodeStatus;
 import ru.csc.bdse.util.Constants;
 import ru.csc.bdse.util.Random;
 

@@ -1,4 +1,4 @@
-package ru.csc.bdse.db;
+package ru.csc.bdse.kv.db;
 
 import org.springframework.data.repository.CrudRepository;
 
