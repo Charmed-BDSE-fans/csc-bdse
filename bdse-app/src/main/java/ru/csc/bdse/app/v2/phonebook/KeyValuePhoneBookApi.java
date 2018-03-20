@@ -10,6 +10,10 @@ public class KeyValuePhoneBookApi extends KeyValuePhoneBookApiBase<PhoneBookReco
 
     @Override
     protected String getId(PhoneBookRecord record) {
+        if (record.getNickname() == null) {
+            return String.format("%s-%s", record.getName(), record.getSurname());
+        }
+
         return String.format("%s-%s-%s", record.getName(), record.getSurname(), record.getNickname());
     }
 

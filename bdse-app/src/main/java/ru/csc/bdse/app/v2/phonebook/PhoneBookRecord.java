@@ -65,6 +65,15 @@ public class PhoneBookRecord extends ru.csc.bdse.app.v1.phonebook.PhoneBookRecor
     }
 
     @Override
+    public int hashCode() {
+        if (getNickname() == null) {
+            return Objects.hash(String.format("%s-%s", getName(), getSurname()));
+        }
+
+        return Objects.hash(String.format("%s-%s-%s", getName(), getSurname(), getNickname()));
+    }
+
+    @Override
     public String toString() {
         return "PhoneBookRecord{" +
                 "name='" + getName() + '\'' +
