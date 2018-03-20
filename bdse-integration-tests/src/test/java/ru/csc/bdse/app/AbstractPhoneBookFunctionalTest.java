@@ -8,8 +8,10 @@ import ru.csc.bdse.app.common.Record;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * Test have to be implemented
@@ -20,6 +22,12 @@ public abstract class AbstractPhoneBookFunctionalTest<R extends Record> {
     protected abstract R randomRecord();
 
     protected abstract R modifyContent(R record);
+
+    protected abstract String getSurname(R record);
+
+    protected abstract R modifySurname(R record);
+
+    protected abstract boolean equalContent(R record1, R record2);
 
     protected abstract PhoneBookApi<R> client();
 
@@ -123,5 +131,35 @@ public abstract class AbstractPhoneBookFunctionalTest<R extends Record> {
         Set<R> found = api.get(c);
 
         assertTrue(found.contains(modifiedRecord));
+
+        R readModifiedRecord = found.stream()
+                .filter(o -> o.equals(modifiedRecord))
+                .collect(Collectors.toList())
+                .get(0);
+
+        assertFalse(equalContent(record, readModifiedRecord));
+    }
+
+    @Test
+    public void updateThanGet() {
+        final R oldRecord = randomRecord();
+        final R newRecord = modifySurname(oldRecord); // modifies surname
+
+        final char oldSurnameFirstLetter = getSurname(oldRecord).charAt(0);
+        final char newSurnameFirstLetter = getSurname(newRecord).charAt(0);
+        assumeTrue(oldSurnameFirstLetter != newSurnameFirstLetter);
+
+        api.put(oldRecord);
+        api.put(newRecord);
+
+        int actualOldSize = api.get(oldSurnameFirstLetter).size();
+        int expectedOldSize = 1;
+
+        assertEquals("Actual size: " + actualOldSize + " but size: " + expectedOldSize, expectedOldSize, actualOldSize);
+
+        int actualNewSize = api.get(oldSurnameFirstLetter).size();
+        int expectedNewSize = 1;
+
+        assertEquals("Actual size: " + actualNewSize + " but size: " + expectedNewSize, expectedNewSize, actualNewSize);
     }
 }

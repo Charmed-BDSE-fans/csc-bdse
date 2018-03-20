@@ -10,6 +10,8 @@ import ru.csc.bdse.util.Containers;
 import ru.csc.bdse.util.Containers.AppContainer.Version;
 import ru.csc.bdse.util.Random;
 
+import java.util.Objects;
+
 public class PhoneBookFunctionalTest extends AbstractPhoneBookFunctionalTest<PhoneBookRecord> {
     private static final String KVNODE_NAME = "node-0";
     private static final Network testNetwork = Network.newNetwork();
@@ -41,11 +43,27 @@ public class PhoneBookFunctionalTest extends AbstractPhoneBookFunctionalTest<Pho
     }
 
     @Override
+    protected PhoneBookRecord modifySurname(PhoneBookRecord record) {
+        String newSurname = Random.randomString();
+        return new PhoneBookRecord(record.getName(), newSurname, record.getPhone());
+    }
+
+    @Override
+    protected String getSurname(PhoneBookRecord record) {
+        return record.getSurname();
+    }
+
+    @Override
     protected PhoneBookRecord randomRecord() {
         String name = Random.randomString();
         String surname = Random.randomString();
         String phone = Random.randomString();
         return new PhoneBookRecord(name, surname, phone);
+    }
+
+    @Override
+    protected boolean equalContent(PhoneBookRecord record1, PhoneBookRecord record2) {
+        return Objects.equals(record1.getPhone(), record2.getPhone());
     }
 
     @Override

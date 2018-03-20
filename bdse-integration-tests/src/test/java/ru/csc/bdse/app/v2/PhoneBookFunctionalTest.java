@@ -10,7 +10,9 @@ import ru.csc.bdse.util.Containers;
 import ru.csc.bdse.util.Containers.AppContainer.Version;
 import ru.csc.bdse.util.Random;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,6 +48,24 @@ public class PhoneBookFunctionalTest extends AbstractPhoneBookFunctionalTest<Pho
         phones.add(p);
 
         return new PhoneBookRecord(record.getName(), record.getNickname(), record.getSurname(), phones);
+    }
+
+    @Override
+    protected String getSurname(PhoneBookRecord record) {
+        return record.getSurname();
+    }
+
+    @Override
+    protected PhoneBookRecord modifySurname(PhoneBookRecord record) {
+        String newSurname = Random.randomString();
+
+        return new PhoneBookRecord(record.getName(), record.getNickname(), newSurname, record.getPhones());
+    }
+
+    @Override
+    protected boolean equalContent(PhoneBookRecord record1, PhoneBookRecord record2) {
+        return Objects.equals(record1.getPhone(), record2.getPhone()) &&
+                Objects.equals(record1.getPhones(), record2.getPhones());
     }
 
     @Override
