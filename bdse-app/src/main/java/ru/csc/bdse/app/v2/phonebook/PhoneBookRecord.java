@@ -17,11 +17,11 @@ public class PhoneBookRecord extends ru.csc.bdse.app.v1.phonebook.PhoneBookRecor
             this.phones = phones;
         }
 
-        protected String getNickname() {
+        public String getNickname() {
             return nickname;
         }
 
-        protected List<String> getPhones() {
+        public List<String> getPhones() {
             return phones;
         }
     }
@@ -38,7 +38,7 @@ public class PhoneBookRecord extends ru.csc.bdse.app.v1.phonebook.PhoneBookRecor
         this.extension = new Extension(nickname, phones.subList(1, phones.size()));
     }
 
-    protected Extension getExtension() {
+    public Extension getExtension() {
         return extension;
     }
 
