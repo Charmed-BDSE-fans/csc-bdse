@@ -41,4 +41,24 @@ public class PhoneBookSerializationTest {
         assertEquals(originalRecord.getSurname(), restoredRecord.getSurname());
         assertEquals(originalRecord.getPhone(), restoredRecord.getPhone());
     }
+
+    @Test
+    public void test3() throws Exception {
+        ru.csc.bdse.app.v2.phonebook.PhoneBookRecord originalRecord = new ru.csc.bdse.app.v2.phonebook.PhoneBookRecord(
+                "Nick",
+                "Fisher",
+                "The Kid",
+                Arrays.asList("555-12-44", "555-22-33")
+        );
+
+        String encoded = mapper.writeValueAsString(originalRecord);
+
+        ru.csc.bdse.app.v2.phonebook.PhoneBookRecord restoredRecord = mapper.readValue(encoded, ru.csc.bdse.app.v2.phonebook.PhoneBookRecord.class);
+
+        assertEquals(originalRecord.getName(), restoredRecord.getName());
+        assertEquals(originalRecord.getSurname(), restoredRecord.getSurname());
+        assertEquals(originalRecord.getPhone(), restoredRecord.getPhone());
+        assertEquals(originalRecord.getNickname(), restoredRecord.getNickname());
+        assertEquals(originalRecord.getPhones(), restoredRecord.getPhones());
+    }
 }
