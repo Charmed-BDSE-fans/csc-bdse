@@ -20,11 +20,13 @@ public abstract class KeyValuePhoneBookApiBase<R extends Record> implements Phon
 
     private static final byte[] FAKE_BODY = new byte[] { 0 };
 
-    private static <R extends Record> Set<String> makeLetterKeys(R record) {
+    protected abstract String getId(R record);
+
+    private Set<String> makeLetterKeys(R record) {
         return record
                 .literals()
                 .stream()
-                .map(c -> String.format("%s%c%d", LETTER_PREFIX, c, record.getId()))
+                .map(c -> String.format("%s%c%s", LETTER_PREFIX, c, getId(record)))
                 .collect(Collectors.toSet());
     }
 
@@ -32,12 +34,12 @@ public abstract class KeyValuePhoneBookApiBase<R extends Record> implements Phon
         return String.format("%s%c", LETTER_PREFIX, c);
     }
 
-    private static int getIdFromLetterKey(String key) {
-        return Integer.parseInt(key.replaceAll(String.format("^%s.", LETTER_PREFIX), ""));
+    private String getIdFromLetterKey(String key) {
+        return key.replaceAll(String.format("^%s.", LETTER_PREFIX), "");
     }
 
-    private static String makeDataKey(int id) {
-        return String.format("%s%d", DATA_PREFIX, id);
+    private static String makeDataKey(String id) {
+        return String.format("%s%s", DATA_PREFIX, id);
     }
 
     public KeyValuePhoneBookApiBase(KeyValueApi keyValueApi, Class<R> recordClass) {
@@ -53,7 +55,7 @@ public abstract class KeyValuePhoneBookApiBase<R extends Record> implements Phon
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Serialization failed", e);
         }
-        String dataKey = makeDataKey(record.getId());
+        String dataKey = makeDataKey(getId(record));
         Set<String> letterKeys = makeLetterKeys(record);
 
         keyValueApi.put(dataKey, data);
@@ -81,7 +83,7 @@ public abstract class KeyValuePhoneBookApiBase<R extends Record> implements Phon
 
     @Override
     public void delete(R record) {
-        String dataKey = makeDataKey(record.getId());
+        String dataKey = makeDataKey(getId(record));
         Set<String> letterKeys = makeLetterKeys(record);
 
         keyValueApi.delete(dataKey);

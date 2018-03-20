@@ -7,4 +7,9 @@ public class KeyValuePhoneBookApi extends KeyValuePhoneBookApiBase<PhoneBookReco
     public KeyValuePhoneBookApi(KeyValueApi kva) {
         super(kva, PhoneBookRecord.class);
     }
+
+    @Override
+    protected String getId(PhoneBookRecord record) {
+        return String.format("%s-%s", record.getName(), record.getSurname());
+    }
 }

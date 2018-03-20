@@ -4,12 +4,9 @@ import ru.csc.bdse.app.common.Record;
 
 import java.util.Collections;
 import java.util.Objects;
-import java.util.Random;
 import java.util.Set;
 
 public class PhoneBookRecord implements Record {
-
-    private int id;
     private String name;
     private String surname;
     private String phone;
@@ -17,15 +14,9 @@ public class PhoneBookRecord implements Record {
     protected PhoneBookRecord() { }
 
     public PhoneBookRecord(String name, String surname, String phone) {
-        Random rand = new Random();
-        this.id = rand.nextInt();
         this.name = name;
         this.surname = surname;
         this.phone = phone;
-    }
-
-    public int getId() {
-        return id;
     }
 
     public String getName() {
@@ -45,15 +36,13 @@ public class PhoneBookRecord implements Record {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PhoneBookRecord record = (PhoneBookRecord) o;
-        return id == record.id &&
-                Objects.equals(name, record.name) &&
-                Objects.equals(surname, record.surname) &&
-                Objects.equals(phone, record.phone);
+        return  Objects.equals(name, record.name) &&
+                Objects.equals(surname, record.surname);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(String.format("%s-%s", name, surname));
     }
 
     @Override

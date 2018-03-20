@@ -61,7 +61,7 @@ public class PhoneBookRecord extends ru.csc.bdse.app.v1.phonebook.PhoneBookRecor
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         PhoneBookRecord that = (PhoneBookRecord) o;
-        return Objects.equals(extension, that.extension);
+        return Objects.equals(getNickname(), that.getNickname());
     }
 
     @Override

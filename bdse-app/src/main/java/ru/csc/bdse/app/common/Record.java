@@ -9,11 +9,6 @@ import java.util.Set;
  */
 public interface Record {
     /**
-     * Returns record id
-     */
-    int getId();
-
-    /**
      * Returns literals, associated with Record
      */
     Set<Character> literals();

@@ -85,7 +85,6 @@ public class PhoneBookCompatibilitiesTest {
         assertEquals(1, records.size());
 
         ru.csc.bdse.app.v2.phonebook.PhoneBookRecord actual = records.stream().findFirst().get();
-        assertEquals(original.getId(), actual.getId());
         assertEquals(original.getName(), actual.getName());
         assertEquals(original.getSurname(), actual.getSurname());
         assertEquals(original.getPhone(), actual.getPhone());
@@ -98,14 +97,13 @@ public class PhoneBookCompatibilitiesTest {
     public void write11read10() {
         ru.csc.bdse.app.v2.phonebook.PhoneBookRecord original
                 = new ru.csc.bdse.app.v2.phonebook.PhoneBookRecord(
-                        "aba", "caba", "daba", Arrays.asList("+apple", "+peanut")
+                "aba", "caba", "daba", Arrays.asList("+apple", "+peanut")
         );
         getPhoneBookApiV2().put(original);
         Set<ru.csc.bdse.app.v1.phonebook.PhoneBookRecord> records = getPhoneBookApiV1().get(original.getSurname().charAt(0));
         assertEquals(1, records.size());
 
         ru.csc.bdse.app.v1.phonebook.PhoneBookRecord actual = records.stream().findFirst().get();
-        assertEquals(original.getId(), actual.getId());
         assertEquals(original.getName(), actual.getName());
         assertEquals(original.getSurname(), actual.getSurname());
         assertEquals(original.getPhone(), actual.getPhone());
