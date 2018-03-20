@@ -122,12 +122,6 @@ public class PhoneBookNonFunctionalTest {
         ws2.waitUntilReady(app2);
         app2.waitingFor(ws2);
 
-        try {
-            Thread.sleep(10 * 1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         app1api = getApp1Api();
         app2api = getApp2Api();
 
