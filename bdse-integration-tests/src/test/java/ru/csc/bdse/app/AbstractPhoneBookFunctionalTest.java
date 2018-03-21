@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
-import static org.junit.Assume.assumeTrue;
 
 /**
  * Test have to be implemented
@@ -147,7 +146,6 @@ public abstract class AbstractPhoneBookFunctionalTest<R extends Record> {
 
         final char oldSurnameFirstLetter = getSurname(oldRecord).charAt(0);
         final char newSurnameFirstLetter = getSurname(newRecord).charAt(0);
-        assumeTrue(oldSurnameFirstLetter != newSurnameFirstLetter);
 
         api.put(oldRecord);
         api.put(newRecord);
@@ -157,7 +155,7 @@ public abstract class AbstractPhoneBookFunctionalTest<R extends Record> {
 
         assertEquals("Actual size: " + actualOldSize + " but size: " + expectedOldSize, expectedOldSize, actualOldSize);
 
-        int actualNewSize = api.get(oldSurnameFirstLetter).size();
+        int actualNewSize = api.get(newSurnameFirstLetter).size();
         int expectedNewSize = 1;
 
         assertEquals("Actual size: " + actualNewSize + " but size: " + expectedNewSize, expectedNewSize, actualNewSize);

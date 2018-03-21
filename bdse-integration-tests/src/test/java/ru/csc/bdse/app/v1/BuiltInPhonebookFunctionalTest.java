@@ -23,14 +23,14 @@ public class BuiltInPhonebookFunctionalTest extends AbstractPhoneBookFunctionalT
 
     @Override
     protected PhoneBookRecord modifySurname(PhoneBookRecord record) {
-        String newSurname = Random.randomString();
+        String newSurname = "d" + Random.randomString();
         return new PhoneBookRecord(record.getName(), newSurname, record.getPhone());
     }
 
     @Override
     protected PhoneBookRecord randomRecord() {
-        String name = Random.randomString();
-        String surname = Random.randomString();
+        String name = "a" + Random.randomString();
+        String surname = "b"+ Random.randomString();
         String phone = Random.randomString();
         return new PhoneBookRecord(name, surname, phone);
     }

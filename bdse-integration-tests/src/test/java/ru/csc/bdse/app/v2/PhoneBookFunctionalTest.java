@@ -47,7 +47,7 @@ public class PhoneBookFunctionalTest extends AbstractPhoneBookFunctionalTest<Pho
 
         phones.add(p);
 
-        return new PhoneBookRecord(record.getName(), record.getNickname(), record.getSurname(), phones);
+        return new PhoneBookRecord(record.getName(), record.getSurname(), record.getNickname(), phones);
     }
 
     @Override
@@ -57,9 +57,8 @@ public class PhoneBookFunctionalTest extends AbstractPhoneBookFunctionalTest<Pho
 
     @Override
     protected PhoneBookRecord modifySurname(PhoneBookRecord record) {
-        String newSurname = Random.randomString();
-
-        return new PhoneBookRecord(record.getName(), record.getNickname(), newSurname, record.getPhones());
+        String newSurname = "d" + Random.randomString();
+        return new PhoneBookRecord(record.getName(), newSurname, record.getNickname(), record.getPhones());
     }
 
     @Override
@@ -70,9 +69,9 @@ public class PhoneBookFunctionalTest extends AbstractPhoneBookFunctionalTest<Pho
 
     @Override
     protected PhoneBookRecord randomRecord() {
-        String name = Random.randomString();
-        String surname = Random.randomString();
-        String nickname = Random.randomString();
+        String name = "a" + Random.randomString();
+        String surname = "b" + Random.randomString();
+        String nickname = "c" + Random.randomString();
         List<String> phones = Stream.generate(Random::nextKey)
                 .limit(Random.randomInt(10) + 1)
                 .collect(Collectors.toList());
