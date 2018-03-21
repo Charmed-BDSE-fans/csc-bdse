@@ -43,7 +43,7 @@ public class PhoneBookSerializationTest {
     }
 
     @Test
-    public void test3() throws Exception {
+    public void testV2Serialization() throws Exception {
         ru.csc.bdse.app.v2.phonebook.PhoneBookRecord originalRecord = new ru.csc.bdse.app.v2.phonebook.PhoneBookRecord(
                 "Nick",
                 "Fisher",

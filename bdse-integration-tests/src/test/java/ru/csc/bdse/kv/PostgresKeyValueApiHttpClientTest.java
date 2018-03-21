@@ -5,7 +5,7 @@ import org.junit.rules.RuleChain;
 import org.testcontainers.containers.Network;
 import ru.csc.bdse.util.Containers;
 
-public class PostgresKeyValueApiHttpClientTest extends KeyValueApiHttpClientTest2 {
+public class PostgresKeyValueApiHttpClientTest extends AbstractKeyValueApiHttpClientTest {
     private static final String KVNODE_NAME = "node-0";
     private static final Network testNetwork = Network.newNetwork();
     private static final Containers.PostgresContainer db = Containers

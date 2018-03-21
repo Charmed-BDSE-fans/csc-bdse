@@ -20,7 +20,7 @@ import static org.junit.Assert.*;
  *
  * @author alesavin
  */
-public abstract class KeyValueApiHttpClientTest2 {
+public abstract class AbstractKeyValueApiHttpClientTest {
     private static final String KVNODE_NAME = "node-0";
 
     private KeyValueApi api = newKeyValueApi();
