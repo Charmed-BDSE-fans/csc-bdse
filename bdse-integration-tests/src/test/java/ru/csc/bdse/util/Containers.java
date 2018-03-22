@@ -12,6 +12,9 @@ import ru.csc.bdse.kv.config.PostgresKeyValueApiConfig;
 import ru.csc.bdse.kv.util.Env;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
@@ -33,7 +36,7 @@ public class Containers {
      * @param name Node name.
      */
     public static KVNodeContainer inMemoryNode(String name) {
-        return new KVNodeContainer(InMemoryKeyValueApiConfig.PROFILE, name);
+        return kvNode(new KVNodeContainer.InMemory(name));
     }
 
     /**
@@ -49,52 +52,7 @@ public class Containers {
      * @param connectionUrl Database connection URL.
      */
     public static KVNodeContainer postgresNode(String name, String connectionUrl) {
-        return new KVNodeContainer(PostgresKeyValueApiConfig.PROFILE, name)
-                .withEnv(Env.SPRING_DATASOURCE_URL, connectionUrl);
-    }
-
-    private static AppContainer application(AppContainer.Version version, String kvNodeProfile) {
-        String appProfile;
-        switch (version) {
-            case V1:
-                appProfile = PhoneBookApiV1Config.PROFILE;
-                break;
-            case V2:
-                appProfile = PhoneBookApiV2Config.PROFILE;
-                break;
-            default:
-                throw new IllegalArgumentException();
-        }
-        return new AppContainer()
-                .withEnv(Env.SPRING_PROFILES_ACTIVE, String.join(",", appProfile, kvNodeProfile));
-    }
-
-    /**
-     * Creates app container which runs on internal in-memory kvNode.
-     * @param version PhoneBookApi version
-     */
-    public static AppContainer applicationWithInMemoryKV(AppContainer.Version version) {
-        return application(version, InMemoryKeyValueApiConfig.PROFILE);
-    }
-
-    /**
-     * Creates app container which runs on internal postgres kvNode
-     * @param version PhoneBookApi version
-     * @param dbUrl Postgres connection Url
-     */
-    public static AppContainer applicationWithPostgresKV(AppContainer.Version version, String dbUrl) {
-        return application(version, PostgresKeyValueApiConfig.PROFILE)
-                .withEnv(Env.SPRING_DATASOURCE_URL, dbUrl);
-    }
-
-    /**
-     * Creates app container which runs on remote kvNode
-     * @param version PhoneBookApi version
-     * @param baseUrl KvNode connection Url
-     */
-    public static AppContainer applicationWithRemoteKV(AppContainer.Version version, String baseUrl) {
-        return application(version, KeyValueApiHttpClientConfig.PROFILE)
-                .withEnv(Env.KVNODE_BASEURL, baseUrl);
+        return kvNode(new KVNodeContainer.Postgres(name, connectionUrl));
     }
 
     /**
@@ -103,6 +61,66 @@ public class Containers {
      */
     public static KVNodeContainer postgresNode(String connectionUrl) {
         return postgresNode(KVNodeContainer.DEFAULT_NODE_NAME, connectionUrl);
+    }
+
+    /**
+     * Creates kvNode with given config and default name
+     * @param config config
+     */
+    public static KVNodeContainer kvNode(KVNodeContainer.Config config) {
+        String name = null;
+        if (config instanceof KVNodeContainer.InMemory)
+            name = ((KVNodeContainer.InMemory) config).name;
+        if (config instanceof KVNodeContainer.Postgres)
+            name = ((KVNodeContainer.Postgres) config).name;
+        KVNodeContainer container = new KVNodeContainer(name);
+        return configureKVNode(container, config);
+    }
+
+    private static <T extends SpringAppContainer<T>> T configureKVNode(T container, KVNodeContainer.Config config) {
+        if (config instanceof KVNodeContainer.InMemory) {
+            return container
+                    .withSpringProfile(InMemoryKeyValueApiConfig.PROFILE);
+        }
+        if (config instanceof KVNodeContainer.Postgres) {
+            return container
+                    .withSpringProfile(PostgresKeyValueApiConfig.PROFILE)
+                    .withSpringProperty(Env.SPRING_DATASOURCE_URL_PROPERTY, ((KVNodeContainer.Postgres) config).connectionUrl);
+        }
+        if (config instanceof KVNodeContainer.Remote) {
+            return container
+                    .withSpringProfile(KeyValueApiHttpClientConfig.PROFILE)
+                    .withSpringProperty(Env.KVNODE_BASEURL_PROPERTY, ((KVNodeContainer.Remote) config).baseUrl);
+        }
+        throw new IllegalArgumentException("KVNodeContainer.Config");
+    }
+
+    /**
+     * Creates app container which runs on remote kvNode
+     * @param version PhoneBookApi version
+     * @param baseUrl KvNode connection Url
+     */
+    public static AppContainer applicationWithRemoteKV(AppContainer.Version version, String baseUrl) {
+        return application(version, new KVNodeContainer.Remote(baseUrl));
+    }
+
+    /**
+     * Creates app container which runs on required kvNode
+     * @param version PhoneBookApi version
+     * @param config KvNode config to use
+     */
+    public static AppContainer application(AppContainer.Version version, KVNodeContainer.Config config) {
+        return configureKVNode(configureApp(new AppContainer(), version), config);
+    }
+
+    private static <T extends SpringAppContainer<T>> T configureApp(T container, AppContainer.Version version) {
+        switch (version) {
+            case V1:
+                return container.withSpringProfile(PhoneBookApiV1Config.PROFILE);
+            case V2:
+                return container.withSpringProfile(PhoneBookApiV2Config.PROFILE);
+        }
+        throw new IllegalArgumentException("AppContainer.Version");
     }
 
     private static abstract class LocatableContainer<T extends LocatableContainer<T>> extends GenericContainer<T> {
@@ -165,17 +183,71 @@ public class Containers {
         }
     }
 
-    public static final class KVNodeContainer extends LocatableContainer<KVNodeContainer> {
+    private static abstract class SpringAppContainer<T extends SpringAppContainer<T>> extends LocatableContainer<T> {
+        private final List<String> profiles = new ArrayList<>();
+
+        public static String springPropertyToEnv(String property) {
+            return property.toUpperCase().replace('.', '_');
+        }
+
+        protected SpringAppContainer(String image, String defaultNetworkAlias, int applicationPort) {
+            super(image, defaultNetworkAlias, applicationPort);
+        }
+
+        public T withSpringProfile(String profile) {
+            profiles.add(profile);
+            return withSpringProperty(Env.SPRING_PROFILES_ACTIVE_PROPERTY, String.join(",", profiles));
+        }
+
+        public T withSpringProperty(String property, String value) {
+            return withEnv(springPropertyToEnv(property), value);
+        }
+
+        public List<String> getProfiles() {
+            return Collections.unmodifiableList(profiles);
+        }
+    }
+
+    public static final class KVNodeContainer extends SpringAppContainer<KVNodeContainer> {
         private static final String DEFAULT_NODE_NAME = "kv-node-0";
         private static final int APPLICATION_PORT = 8080;
 
+        public interface Config { }
+
+        public static class InMemory implements Config {
+            private final String name;
+
+            public InMemory(String name) {
+                this.name = name;
+            }
+        }
+
+        public static class Postgres implements Config {
+            private final String name;
+            public final String connectionUrl;
+
+            private Postgres(String name, String connectionUrl) {
+                this.name = name;
+                this.connectionUrl = connectionUrl;
+            }
+        }
+
+        public static class Remote implements Config {
+            public final String baseUrl;
+
+            private Remote(String baseUrl) {
+                this.baseUrl = baseUrl;
+            }
+        }
+
         private final String name;
 
-        private KVNodeContainer(String profile, String name) {
+        private KVNodeContainer(String name) {
             super("charmed-bdse-fans/bdse-kvnode:latest", name, APPLICATION_PORT);
-            withEnv(Env.KVNODE_NAME, name);
-            withEnv(Env.SPRING_PROFILES_ACTIVE, profile);
             withStartupTimeout(DEFAULT_TIMEOUT);
+            if (name != null) {
+                withSpringProperty(Env.KVNODE_NAME_PROPERTY, name);
+            }
 
             this.name = name;
         }
@@ -189,7 +261,7 @@ public class Containers {
         }
     }
 
-    public static final class AppContainer extends LocatableContainer<AppContainer> {
+    public static final class AppContainer extends SpringAppContainer<AppContainer> {
         private static final int APPLICATION_PORT = 8080;
         private static final String NETWORK_ALIAS = "app";
 
@@ -199,9 +271,7 @@ public class Containers {
 
         private AppContainer() {
             super("charmed-bdse-fans/bdse-app:latest", NETWORK_ALIAS, APPLICATION_PORT);
-            withExposedPorts(APPLICATION_PORT);
             withStartupTimeout(DEFAULT_TIMEOUT);
-            withNetworkAliases(NETWORK_ALIAS);
         }
 
         public String getRESTBaseUrl(boolean getPredefinedAddress) {

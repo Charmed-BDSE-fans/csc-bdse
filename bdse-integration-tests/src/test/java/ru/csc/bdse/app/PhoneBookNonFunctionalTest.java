@@ -25,14 +25,13 @@ import static org.junit.Assert.assertTrue;
  * @author alesavin
  */
 public class PhoneBookNonFunctionalTest {
-    private static final String KVNODE_NAME = "node-0";
     private static final Network testNetwork = Network.newNetwork();
     private static final Containers.PostgresContainer db = Containers
             .postgresDB()
             .withNetwork(testNetwork);
 
     private static final Containers.KVNodeContainer kvnode = Containers
-            .postgresNode(KVNODE_NAME, db.getConnectionUrl(true))
+            .postgresNode(db.getConnectionUrl(true))
             .withNetwork(testNetwork);
 
     private static final Containers.AppContainer app1 = Containers
@@ -79,7 +78,7 @@ public class PhoneBookNonFunctionalTest {
     public void putGetErasureWithStoppedNode() {
         // test put, get, erasure if kv-node container was broken
 
-        kvapi.action(KVNODE_NAME, NodeAction.DOWN);
+        kvapi.action(kvnode.getName(), NodeAction.DOWN);
 
         app1api.put(record1);
         app2api.put(record2);
@@ -126,8 +125,8 @@ public class PhoneBookNonFunctionalTest {
         app1api.put(record1);
         app2api.put(record2);
 
-        kvapi.action(KVNODE_NAME, NodeAction.DOWN);
-        kvapi.action(KVNODE_NAME, NodeAction.UP);
+        kvapi.action(kvnode.getName(), NodeAction.DOWN);
+        kvapi.action(kvnode.getName(), NodeAction.UP);
 
         assertEquals(record1, app1api.get(record1.getSurname().charAt(0)).stream().findFirst().get());
         assertEquals(record2, app2api.get(record2.getNickname().charAt(0)).stream().findFirst().get());

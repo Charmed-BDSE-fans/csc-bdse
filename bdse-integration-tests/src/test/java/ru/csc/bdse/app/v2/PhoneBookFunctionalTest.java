@@ -10,21 +10,19 @@ import ru.csc.bdse.util.Containers;
 import ru.csc.bdse.util.Containers.AppContainer.Version;
 import ru.csc.bdse.util.Random;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PhoneBookFunctionalTest extends AbstractPhoneBookFunctionalTest<PhoneBookRecord> {
-    private static final String KVNODE_NAME = "node-0";
     private static final Network testNetwork = Network.newNetwork();
     private static final Containers.PostgresContainer db = Containers
             .postgresDB()
             .withNetwork(testNetwork);
 
     private static final Containers.KVNodeContainer kvnode = Containers
-            .postgresNode(KVNODE_NAME, db.getConnectionUrl(true))
+            .postgresNode(db.getConnectionUrl(true))
             .withNetwork(testNetwork);
 
     private static final Containers.AppContainer app = Containers

@@ -1,5 +1,6 @@
 package ru.csc.bdse.kv.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -12,9 +13,14 @@ import ru.csc.bdse.kv.util.Env;
 public class InMemoryKeyValueApiConfig {
     public static final String PROFILE = "kvnode-in_memory";
 
+    @Value("${kvNode.node:#{null}}")
+    private String nodeName;
+
     @Bean
     KeyValueApi inMemoryNode() {
-        String nodeName = Env.get(Env.KVNODE_NAME).orElseGet(Env::randomNodeName);
+        String nodeName = this.nodeName;
+        if (nodeName == null)
+            nodeName = Env.randomNodeName();
         return new InMemoryKeyValueApi(nodeName);
     }
 }

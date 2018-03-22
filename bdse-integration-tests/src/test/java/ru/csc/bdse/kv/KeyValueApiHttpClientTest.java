@@ -10,12 +10,9 @@ import ru.csc.bdse.util.Containers;
  * @author semkagtn
  */
 public class KeyValueApiHttpClientTest extends AbstractKeyValueApiTest {
-
-    private static final String NODE_NAME = "node-0";
-
     @ClassRule
     public static final Containers.KVNodeContainer node = Containers
-            .inMemoryNode(NODE_NAME)
+            .kvNode(Containers.KVNodeContainer.IN_MEMORY)
             .withNetwork(Network.SHARED);
 
     @Override

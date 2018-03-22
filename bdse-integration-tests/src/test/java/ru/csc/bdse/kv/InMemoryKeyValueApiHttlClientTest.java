@@ -6,11 +6,10 @@ import org.testcontainers.containers.Network;
 import ru.csc.bdse.util.Containers;
 
 public class InMemoryKeyValueApiHttlClientTest extends AbstractKeyValueApiHttpClientTest {
-    private static final String KVNODE_NAME = "node-0";
     private static final Network testNetwork = Network.newNetwork();
 
     private static final Containers.KVNodeContainer kvnode = Containers
-            .inMemoryNode(KVNODE_NAME)
+            .kvNode(Containers.KVNodeContainer.IN_MEMORY)
             .withNetwork(testNetwork);
 
     @ClassRule
