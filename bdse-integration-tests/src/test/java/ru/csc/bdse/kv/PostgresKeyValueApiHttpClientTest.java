@@ -22,6 +22,6 @@ public class PostgresKeyValueApiHttpClientTest extends AbstractKeyValueApiHttpCl
 
     @Override
     protected String kvnodeUrl() {
-        return kvnode.getRESTBaseUrl(false);
+        return kvnode.getKVBaseUrl(false);
     }
 }

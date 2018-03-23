@@ -30,11 +30,11 @@ public class PhoneBookCompatibilitiesTest {
             .withNetwork(testNetwork);
 
     private static final Containers.AppContainer appV1 = Containers
-            .applicationWithRemoteKV(Containers.AppContainer.Version.V1, kvNode.getRESTBaseUrl(true))
+            .applicationWithRemoteKV(Containers.AppContainer.Version.V1, kvNode.getKVBaseUrl(true))
             .withNetwork(testNetwork);
 
     private static final Containers.AppContainer appV2 = Containers
-            .applicationWithRemoteKV(Containers.AppContainer.Version.V2, kvNode.getRESTBaseUrl(true))
+            .applicationWithRemoteKV(Containers.AppContainer.Version.V2, kvNode.getKVBaseUrl(true))
             .withNetwork(testNetwork);
 
     @ClassRule
@@ -46,11 +46,11 @@ public class PhoneBookCompatibilitiesTest {
                     .around(appV2);
 
     private ru.csc.bdse.app.v1.phonebook.PhoneBookApiHttpClient clientV1() {
-        return new ru.csc.bdse.app.v1.phonebook.PhoneBookApiHttpClient(appV1.getRESTBaseUrl(false));
+        return new ru.csc.bdse.app.v1.phonebook.PhoneBookApiHttpClient(appV1.getAppBaseUrl(false));
     }
 
     private ru.csc.bdse.app.v2.phonebook.PhoneBookApiHttpClient clientV2() {
-        return new ru.csc.bdse.app.v2.phonebook.PhoneBookApiHttpClient(appV2.getRESTBaseUrl(false));
+        return new ru.csc.bdse.app.v2.phonebook.PhoneBookApiHttpClient(appV2.getAppBaseUrl(false));
     }
 
     private PhoneBookApi<ru.csc.bdse.app.v1.phonebook.PhoneBookRecord> apiV1;

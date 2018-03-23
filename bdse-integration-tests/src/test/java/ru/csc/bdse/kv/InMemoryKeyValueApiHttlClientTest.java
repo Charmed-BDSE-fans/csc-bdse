@@ -19,6 +19,6 @@ public class InMemoryKeyValueApiHttlClientTest extends AbstractKeyValueApiHttpCl
 
     @Override
     protected String kvnodeUrl() {
-        return kvnode.getRESTBaseUrl(false);
+        return kvnode.getKVBaseUrl(false);
     }
 }

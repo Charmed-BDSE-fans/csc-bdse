@@ -35,11 +35,11 @@ public class PhoneBookNonFunctionalTest {
             .withNetwork(testNetwork);
 
     private static final Containers.AppContainer app1 = Containers
-            .applicationWithRemoteKV(Containers.AppContainer.Version.V1, kvnode.getRESTBaseUrl(true))
+            .applicationWithRemoteKV(Containers.AppContainer.Version.V1, kvnode.getKVBaseUrl(true))
             .withNetwork(testNetwork);
 
     private static final Containers.AppContainer app2 = Containers
-            .applicationWithRemoteKV(Containers.AppContainer.Version.V2, kvnode.getRESTBaseUrl(true))
+            .applicationWithRemoteKV(Containers.AppContainer.Version.V2, kvnode.getKVBaseUrl(true))
             .withNetwork(testNetwork);
 
     @ClassRule
@@ -63,15 +63,15 @@ public class PhoneBookNonFunctionalTest {
     private PhoneBookApi<ru.csc.bdse.app.v2.phonebook.PhoneBookRecord> app2api = getApp2Api();
 
     private KeyValueApi getKvapi() {
-        return new KeyValueApiHttpClient(kvnode.getRESTBaseUrl(false));
+        return new KeyValueApiHttpClient(kvnode.getKVBaseUrl(false));
     }
 
     private PhoneBookApi<PhoneBookRecord>  getApp1Api() {
-        return new  ru.csc.bdse.app.v1.phonebook.PhoneBookApiHttpClient(app1.getRESTBaseUrl(false));
+        return new  ru.csc.bdse.app.v1.phonebook.PhoneBookApiHttpClient(app1.getAppBaseUrl(false));
     }
 
     private PhoneBookApi<ru.csc.bdse.app.v2.phonebook.PhoneBookRecord> getApp2Api() {
-        return new PhoneBookApiHttpClient(app2.getRESTBaseUrl(false));
+        return new PhoneBookApiHttpClient(app2.getAppBaseUrl(false));
     }
 
     @Test

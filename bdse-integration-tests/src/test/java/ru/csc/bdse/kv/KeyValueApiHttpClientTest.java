@@ -17,6 +17,6 @@ public class KeyValueApiHttpClientTest extends AbstractKeyValueApiTest {
 
     @Override
     protected KeyValueApi newKeyValueApi() {
-        return new KeyValueApiHttpClient(node.getRESTBaseUrl(false));
+        return new KeyValueApiHttpClient(node.getKVBaseUrl(false));
     }
 }

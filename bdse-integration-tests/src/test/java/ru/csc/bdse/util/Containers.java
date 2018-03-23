@@ -6,6 +6,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import ru.csc.bdse.app.config.PhoneBookApiV1Config;
 import ru.csc.bdse.app.config.PhoneBookApiV2Config;
+import ru.csc.bdse.kv.config.CoordinatedKeyValueApiConfig;
 import ru.csc.bdse.kv.config.InMemoryKeyValueApiConfig;
 import ru.csc.bdse.kv.config.KeyValueApiHttpClientConfig;
 import ru.csc.bdse.kv.config.PostgresKeyValueApiConfig;
@@ -15,12 +16,14 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
 /**
  * Container utils for testing
  */
+@SuppressWarnings("WeakerAccess")
 public class Containers {
     private static final Duration DEFAULT_TIMEOUT = Duration.of(30, SECONDS);
 
@@ -77,7 +80,10 @@ public class Containers {
         return configureKVNode(container, config);
     }
 
-    private static <T extends SpringAppContainer<T>> T configureKVNode(T container, KVNodeContainer.Config config) {
+    private static <T extends SpringAppContainer<T>> T configureKVNode(
+            T container,
+            KVNodeContainer.Config config
+    ) {
         if (config instanceof KVNodeContainer.InMemory) {
             return container
                     .withSpringProfile(InMemoryKeyValueApiConfig.PROFILE);
@@ -92,7 +98,41 @@ public class Containers {
                     .withSpringProfile(KeyValueApiHttpClientConfig.PROFILE)
                     .withSpringProperty(Env.KVNODE_BASEURL_PROPERTY, ((KVNodeContainer.Remote) config).baseUrl);
         }
+        if (config instanceof KVNodeContainer.Coordinated) {
+            KVNodeContainer.Coordinated coordinated = (KVNodeContainer.Coordinated) config;
+            if (coordinated.localConfig != null) {
+                container = configureKVNode(container, coordinated.localConfig);
+            }
+            return container
+                    .withSpringProfile(CoordinatedKeyValueApiConfig.PROFILE)
+                    .withSpringProperty(Env.KVNODE_COORDINATION_RCL, Integer.toString(coordinated.rcl))
+                    .withSpringProperty(Env.KVNODE_COORDINATION_WCL, Integer.toString(coordinated.wcl))
+                    .withSpringProperty(Env.KVNODE_COORDINATION_TIMEOUT, Integer.toString(coordinated.timeout))
+                    .withSpringProperty(Env.KVNODE_COORDINATION_REMOTES, String.join(",", coordinated.remotes));
+        }
         throw new IllegalArgumentException("KVNodeContainer.Config");
+    }
+
+    /**
+     * Coordinate given KVNodes to work together as a cluster
+     * @param containers list of containers to configure
+     * @param rcl read consistency level
+     * @param wcl write consisiteny level
+     * @param timeout timeout in millis
+     */
+    public static <T extends KVNodeContainerBase<T>> void coordinateKvNodes(
+            List<T> containers,
+            int rcl,
+            int wcl,
+            int timeout
+    ) {
+        for (T container: containers) {
+            List<String> remotes = containers.stream()
+                    .filter(t -> t != container)
+                    .map(t -> t.getInternalKVBaseUrl(true))
+                    .collect(Collectors.toList());
+            configureKVNode(container, new KVNodeContainer.Coordinated(rcl, wcl, timeout, remotes, null));
+        }
     }
 
     /**
@@ -184,14 +224,16 @@ public class Containers {
     }
 
     private static abstract class SpringAppContainer<T extends SpringAppContainer<T>> extends LocatableContainer<T> {
+        private static final int APPLICATION_PORT = 8080;
+
         private final List<String> profiles = new ArrayList<>();
 
         public static String springPropertyToEnv(String property) {
             return property.toUpperCase().replace('.', '_');
         }
 
-        protected SpringAppContainer(String image, String defaultNetworkAlias, int applicationPort) {
-            super(image, defaultNetworkAlias, applicationPort);
+        protected SpringAppContainer(String image, String defaultNetworkAlias) {
+            super(image, defaultNetworkAlias, APPLICATION_PORT);
         }
 
         public T withSpringProfile(String profile) {
@@ -203,14 +245,29 @@ public class Containers {
             return withEnv(springPropertyToEnv(property), value);
         }
 
-        public List<String> getProfiles() {
+        public List<String> getSpringProfiles() {
             return Collections.unmodifiableList(profiles);
         }
     }
 
-    public static final class KVNodeContainer extends SpringAppContainer<KVNodeContainer> {
+    public static abstract class KVNodeContainerBase<T extends KVNodeContainerBase<T>> extends SpringAppContainer<T> {
+        protected KVNodeContainerBase(String image, String defaultNetworkAlias) {
+            super(image, defaultNetworkAlias);
+        }
+
+        public String getKVBaseUrl(boolean getPredefinedAddress) {
+            return String.format("http://%s", getConnectionHostPort(getPredefinedAddress));
+        }
+
+        public String getInternalKVBaseUrl(boolean getPredefinedAddress) {
+            if (!getSpringProfiles().contains(CoordinatedKeyValueApiConfig.PROFILE))
+                throw new IllegalStateException("There is not internal kv api on uncoordinated kv-node");
+            throw new IllegalStateException("There is no internal API yet...");
+        }
+    }
+
+    public static final class KVNodeContainer extends KVNodeContainerBase<KVNodeContainer> {
         private static final String DEFAULT_NODE_NAME = "kv-node-0";
-        private static final int APPLICATION_PORT = 8080;
 
         public interface Config { }
 
@@ -240,10 +297,24 @@ public class Containers {
             }
         }
 
+        public static class Coordinated implements Config {
+            public final int rcl, wcl, timeout;
+            public final List<String> remotes;
+            public final Config localConfig;
+
+            public Coordinated(int rcl, int wcl, int timeout, List<String> remotes, Config localConfig) {
+                this.rcl = rcl;
+                this.wcl = wcl;
+                this.timeout = timeout;
+                this.remotes = remotes;
+                this.localConfig = localConfig;
+            }
+        }
+
         private final String name;
 
         private KVNodeContainer(String name) {
-            super("charmed-bdse-fans/bdse-kvnode:latest", name, APPLICATION_PORT);
+            super("charmed-bdse-fans/bdse-kvnode:latest", name);
             withStartupTimeout(DEFAULT_TIMEOUT);
             if (name != null) {
                 withSpringProperty(Env.KVNODE_NAME_PROPERTY, name);
@@ -255,14 +326,9 @@ public class Containers {
         public String getName() {
             return name;
         }
-
-        public String getRESTBaseUrl(boolean getPredefinedAddress) {
-            return String.format("http://%s", getConnectionHostPort(getPredefinedAddress));
-        }
     }
 
-    public static final class AppContainer extends SpringAppContainer<AppContainer> {
-        private static final int APPLICATION_PORT = 8080;
+    public static final class AppContainer extends KVNodeContainerBase<AppContainer> {
         private static final String NETWORK_ALIAS = "app";
 
         public enum Version {
@@ -270,11 +336,11 @@ public class Containers {
         }
 
         private AppContainer() {
-            super("charmed-bdse-fans/bdse-app:latest", NETWORK_ALIAS, APPLICATION_PORT);
+            super("charmed-bdse-fans/bdse-app:latest", NETWORK_ALIAS);
             withStartupTimeout(DEFAULT_TIMEOUT);
         }
 
-        public String getRESTBaseUrl(boolean getPredefinedAddress) {
+        public String getAppBaseUrl(boolean getPredefinedAddress) {
             return String.format("http://%s", getConnectionHostPort(getPredefinedAddress));
         }
     }

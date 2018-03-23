@@ -26,7 +26,7 @@ public class PhoneBookFunctionalTest extends AbstractPhoneBookFunctionalTest<Pho
             .withNetwork(testNetwork);
 
     private static final Containers.AppContainer app = Containers
-            .applicationWithRemoteKV(Version.V2, kvnode.getRESTBaseUrl(true))
+            .applicationWithRemoteKV(Version.V2, kvnode.getKVBaseUrl(true))
             .withNetwork(testNetwork);
 
     @ClassRule
@@ -79,6 +79,6 @@ public class PhoneBookFunctionalTest extends AbstractPhoneBookFunctionalTest<Pho
 
     @Override
     protected PhoneBookApiHttpClient client() {
-        return new PhoneBookApiHttpClient(app.getRESTBaseUrl(false));
+        return new PhoneBookApiHttpClient(app.getAppBaseUrl(false));
     }
 }
