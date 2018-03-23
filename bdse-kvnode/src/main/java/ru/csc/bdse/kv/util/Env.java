@@ -18,6 +18,11 @@ public class Env {
 
     public static final String KVNODE_BASEURL_PROPERTY = "kvNode.baseUrl";
 
+    public static final String KVNODE_COORDINATION = "kvNode.coordination";
+    public static final String KVNODE_COORDINATION_RCL = KVNODE_COORDINATION + ".rcl";
+    public static final String KVNODE_COORDINATION_WCL = KVNODE_COORDINATION + ".wcl";
+    public static final String KVNODE_COORDINATION_REMOTES = KVNODE_COORDINATION + ".remotes";
+
     public static Optional<String> get(final String name) {
         return Optional.ofNullable(System.getenv(name));
     }

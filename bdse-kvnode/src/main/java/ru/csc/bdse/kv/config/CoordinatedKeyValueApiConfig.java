@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Profile;
 import ru.csc.bdse.kv.node.CoordinatedKeyValueApi;
 import ru.csc.bdse.kv.node.KeyValueApi;
 import ru.csc.bdse.kv.node.KeyValueApiHttpClient;
+import ru.csc.bdse.kv.util.Env;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,12 +34,14 @@ public class CoordinatedKeyValueApiConfig {
                     .map(KeyValueApiHttpClient::new)
                     .collect(Collectors.toList());
             System.out.println(cfg);
-            remotes.add(0, localApi);
             return new CoordinatedKeyValueApi(cfg.rcl, cfg.wcl, remotes);
         };
     }
 
-    @ConfigurationProperties("kvNode.coordination")
+    /**
+     * @see Env class to check field names!
+     */
+    @ConfigurationProperties(Env.KVNODE_COORDINATION)
     public static class Configuration {
         private int rcl = 0;
         private int wcl = 0;

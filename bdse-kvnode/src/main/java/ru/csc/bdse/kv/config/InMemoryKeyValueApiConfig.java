@@ -13,7 +13,7 @@ import ru.csc.bdse.kv.util.Env;
 public class InMemoryKeyValueApiConfig {
     public static final String PROFILE = "kvnode-in_memory";
 
-    @Value("${kvNode.node:#{null}}")
+    @Value("${" + Env.KVNODE_NAME_PROPERTY + ":#{null}}")
     private String nodeName;
 
     @Bean

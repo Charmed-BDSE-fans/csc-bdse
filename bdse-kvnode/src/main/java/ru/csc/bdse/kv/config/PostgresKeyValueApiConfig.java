@@ -16,7 +16,7 @@ import ru.csc.bdse.kv.util.Env;
 public class PostgresKeyValueApiConfig {
     public static final String PROFILE = "kvnode-postgres";
 
-    @Value("${kvNode.node:#{null}}")
+    @Value("${" + Env.KVNODE_NAME_PROPERTY + ":#{null}}")
     private String nodeName;
 
     @Bean

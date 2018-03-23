@@ -9,7 +9,7 @@ public class InMemoryKeyValueApiHttlClientTest extends AbstractKeyValueApiHttpCl
     private static final Network testNetwork = Network.newNetwork();
 
     private static final Containers.KVNodeContainer kvnode = Containers
-            .kvNode(Containers.KVNodeContainer.IN_MEMORY)
+            .inMemoryNode()
             .withNetwork(testNetwork);
 
     @ClassRule

@@ -12,7 +12,7 @@ import ru.csc.bdse.util.Containers;
 public class KeyValueApiHttpClientTest extends AbstractKeyValueApiTest {
     @ClassRule
     public static final Containers.KVNodeContainer node = Containers
-            .kvNode(Containers.KVNodeContainer.IN_MEMORY)
+            .inMemoryNode()
             .withNetwork(Network.SHARED);
 
     @Override
