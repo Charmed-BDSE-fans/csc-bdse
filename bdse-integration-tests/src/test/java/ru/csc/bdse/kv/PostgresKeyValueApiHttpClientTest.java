@@ -11,7 +11,7 @@ public class PostgresKeyValueApiHttpClientTest extends AbstractKeyValueApiHttpCl
             .postgresDB()
             .withNetwork(testNetwork);
     private static final Containers.KVNodeContainer kvnode = Containers
-            .postgresNode(db.getConnectionUrl(true))
+            .postgresNode(KVNODE_NAME, db.getConnectionUrl(true))
             .withNetwork(testNetwork);
 
     @ClassRule

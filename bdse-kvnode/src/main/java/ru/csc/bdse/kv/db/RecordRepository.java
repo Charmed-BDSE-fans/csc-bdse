@@ -9,8 +9,8 @@ import java.util.Optional;
 public interface RecordRepository extends CrudRepository<Record, String> {
     @Transactional
     default boolean deleteIfExists(String key) {
-        if (exists(key)) {
-            delete(key);
+        if (existsById(key)) {
+            deleteById(key);
             return true;
         }
         return false;
