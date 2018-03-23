@@ -34,7 +34,7 @@ public class CoordinatedKeyValueApiConfig {
                     .map(KeyValueApiHttpClient::new)
                     .collect(Collectors.toList());
             System.out.println(cfg);
-            return new CoordinatedKeyValueApi(cfg.rcl, cfg.wcl, remotes);
+            return new CoordinatedKeyValueApi(cfg.rcl, cfg.wcl, cfg.timeout, remotes);
         };
     }
 
@@ -45,6 +45,7 @@ public class CoordinatedKeyValueApiConfig {
     public static class Configuration {
         private int rcl = 0;
         private int wcl = 0;
+        private int timeout = 0;
         private List<String> remotes = Collections.emptyList();
 
         public int getRcl() {
@@ -63,6 +64,14 @@ public class CoordinatedKeyValueApiConfig {
             this.wcl = wcl;
         }
 
+        public int getTimeout() {
+            return timeout;
+        }
+
+        public void setTimeout(int timeout) {
+            this.timeout = timeout;
+        }
+
         public List<String> getRemotes() {
             return remotes;
         }
@@ -76,6 +85,7 @@ public class CoordinatedKeyValueApiConfig {
             return "Configuration{" +
                     "rcl=" + rcl +
                     ", wcl=" + wcl +
+                    ", timeout=" + timeout +
                     ", remotes=" + remotes +
                     '}';
         }
