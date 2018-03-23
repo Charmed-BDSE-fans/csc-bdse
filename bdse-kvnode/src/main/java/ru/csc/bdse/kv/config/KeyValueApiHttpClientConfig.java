@@ -16,7 +16,7 @@ public class KeyValueApiHttpClientConfig {
     private String keyValueBaseUrl;
 
     @Bean
-    public KeyValueApi keyValueApiHttpClient() {
-        return new KeyValueApiHttpClient(keyValueBaseUrl);
+    public KeyValueApi keyValueApiHttpClient(CoordinatedKeyValueApiFactory coordinatedFactory) {
+        return coordinatedFactory.coordinateWithLocal(new KeyValueApiHttpClient(keyValueBaseUrl));
     }
 }

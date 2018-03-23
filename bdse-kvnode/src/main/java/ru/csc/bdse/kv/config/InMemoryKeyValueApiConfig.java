@@ -17,10 +17,10 @@ public class InMemoryKeyValueApiConfig {
     private String nodeName;
 
     @Bean
-    KeyValueApi inMemoryNode() {
-        String nodeName = this.nodeName;
-        if (nodeName == null)
-            nodeName = Env.randomNodeName();
-        return new InMemoryKeyValueApi(nodeName);
+    KeyValueApi inMemoryNode(CoordinatedKeyValueApiFactory coordinatedFactory) {
+            String nodeName = this.nodeName;
+            if (nodeName == null)
+                nodeName = Env.randomNodeName();
+        return coordinatedFactory.coordinateWithLocal(new InMemoryKeyValueApi(nodeName));
     }
 }

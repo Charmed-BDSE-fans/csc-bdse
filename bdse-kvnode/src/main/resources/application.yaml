@@ -1,13 +1,7 @@
+server.error.whitelabel.enabled: false
 ---
 spring:
-  profiles: kvnode-in_memory
-  autoconfigure:
-    exclude:
-    - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-    - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
----
-spring:
-  profiles: kvnode-client
+  profiles: '!kvnode-postgres'
   autoconfigure:
     exclude:
     - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration

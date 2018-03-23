@@ -20,10 +20,10 @@ public class PostgresKeyValueApiConfig {
     private String nodeName;
 
     @Bean
-    KeyValueApi postgresNode(RecordRepository repository) {
-        String nodeName = this.nodeName;
-        if (nodeName == null)
-            nodeName = Env.randomNodeName();
-        return new PostgresKeyValueApi(nodeName, repository);
+    KeyValueApi postgresNode(RecordRepository repository, CoordinatedKeyValueApiFactory coordinatedFactory) {
+            String nodeName = this.nodeName;
+            if (nodeName == null)
+                nodeName = Env.randomNodeName();
+        return coordinatedFactory.coordinateWithLocal(new PostgresKeyValueApi(nodeName, repository));
     }
 }
