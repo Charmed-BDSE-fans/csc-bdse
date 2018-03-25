@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import ru.csc.bdse.kv.node.InMemoryKeyValueApi;
-import ru.csc.bdse.kv.node.KeyValueApi;
+import ru.csc.bdse.kv.node.InternalKeyValueApi;
 import ru.csc.bdse.kv.util.Env;
 
 @Configuration
@@ -17,10 +17,10 @@ public class InMemoryKeyValueApiConfig {
     private String nodeName;
 
     @Bean
-    KeyValueApi inMemoryNode(CoordinatedKeyValueApiFactory coordinatedFactory) {
+    InternalKeyValueApi inMemoryNode() {
             String nodeName = this.nodeName;
             if (nodeName == null)
                 nodeName = Env.randomNodeName();
-        return coordinatedFactory.coordinateWithLocal(new InMemoryKeyValueApi(nodeName));
+        return new InMemoryKeyValueApi(nodeName);
     }
 }

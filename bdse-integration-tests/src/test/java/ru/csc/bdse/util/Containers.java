@@ -6,10 +6,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import ru.csc.bdse.app.config.PhoneBookApiV1Config;
 import ru.csc.bdse.app.config.PhoneBookApiV2Config;
-import ru.csc.bdse.kv.config.CoordinatedKeyValueApiConfig;
-import ru.csc.bdse.kv.config.InMemoryKeyValueApiConfig;
-import ru.csc.bdse.kv.config.KeyValueApiHttpClientConfig;
-import ru.csc.bdse.kv.config.PostgresKeyValueApiConfig;
+import ru.csc.bdse.kv.config.*;
 import ru.csc.bdse.kv.util.Env;
 
 import java.time.Duration;
@@ -262,7 +259,7 @@ public class Containers {
         public String getInternalKVBaseUrl(boolean getPredefinedAddress) {
             if (!getSpringProfiles().contains(CoordinatedKeyValueApiConfig.PROFILE))
                 throw new IllegalStateException("There is not internal kv api on uncoordinated kv-node");
-            throw new IllegalStateException("There is no internal API yet...");
+            return String.format("http://%s/%s", getConnectionHostPort(getPredefinedAddress), KeyValueApiControllerConfig.INTERNAL_KV_PREFIX);
         }
     }
 

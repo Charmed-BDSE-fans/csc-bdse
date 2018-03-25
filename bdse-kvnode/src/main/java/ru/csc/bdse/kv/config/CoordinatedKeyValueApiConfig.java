@@ -4,14 +4,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import ru.csc.bdse.kv.node.CoordinatedKeyValueApi;
-import ru.csc.bdse.kv.node.KeyValueApi;
+import ru.csc.bdse.kv.node.InternalKeyValueApi;
 import ru.csc.bdse.kv.node.KeyValueApiHttpClient;
 import ru.csc.bdse.kv.util.Env;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -20,22 +22,15 @@ public class CoordinatedKeyValueApiConfig {
     public static final String PROFILE = "kvnode-coordinated";
 
     @Bean
-    @Profile("!" + PROFILE)
-    public CoordinatedKeyValueApiFactory noopCoordinatedKeyValueApiFactory() {
-        return localApi -> localApi;
-    }
-
-    @Bean
+    @Primary
     @Profile(PROFILE)
-    public CoordinatedKeyValueApiFactory coordinatedKeyValueApiFactory(Configuration cfg) {
-        return localApi -> {
-            List<KeyValueApi> remotes = cfg.getRemotes()
-                    .stream()
-                    .map(KeyValueApiHttpClient::new)
-                    .collect(Collectors.toList());
-            System.out.println(cfg);
-            return new CoordinatedKeyValueApi(cfg.rcl, cfg.wcl, cfg.timeout, remotes);
-        };
+    public CoordinatedKeyValueApi coordinatedKeyValueApi(Optional<InternalKeyValueApi> localApi, Configuration cfg) {
+        List<InternalKeyValueApi> remotes = cfg.getRemotes()
+                .stream()
+                .map(KeyValueApiHttpClient::new)
+                .collect(Collectors.toList());
+        localApi.ifPresent(internalKeyValueApi -> remotes.add(0, internalKeyValueApi));
+        return new CoordinatedKeyValueApi(cfg.getRcl(), cfg.getWcl(), cfg.getTimeout(), remotes);
     }
 
     /**

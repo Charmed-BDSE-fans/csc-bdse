@@ -19,7 +19,7 @@ import java.util.Set;
  *
  * @author semkagtn
  */
-public class KeyValueApiHttpClient implements KeyValueApi {
+public class KeyValueApiHttpClient implements InternalKeyValueApi {
     private final String baseUrl;
     private final RestTemplate rest = new RestTemplate();
 

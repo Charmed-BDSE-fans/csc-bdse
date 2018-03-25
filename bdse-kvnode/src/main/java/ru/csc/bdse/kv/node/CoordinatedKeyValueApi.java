@@ -5,7 +5,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public class CoordinatedKeyValueApi implements KeyValueApi {
-    public CoordinatedKeyValueApi(int rcl, int wcl, int timeout, List<KeyValueApi> apis) { }
+    public CoordinatedKeyValueApi(int rcl, int wcl, int timeout, List<InternalKeyValueApi> apis) { }
 
     @Override
     public void put(String key, byte[] value) { }

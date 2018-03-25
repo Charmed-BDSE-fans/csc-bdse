@@ -15,12 +15,11 @@ import java.util.Set;
  *
  * @author semkagtn
  */
-@RestController
-public class KeyValueApiController {
+public abstract class KeyValueApiControllerBase {
 
     private final KeyValueApi keyValueApi;
 
-    public KeyValueApiController(final KeyValueApi keyValueApi) {
+    public KeyValueApiControllerBase(final KeyValueApi keyValueApi) {
         this.keyValueApi = keyValueApi;
     }
 

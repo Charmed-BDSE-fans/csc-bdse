@@ -3,10 +3,6 @@ package ru.csc.bdse.kv.node;
 import ru.csc.bdse.kv.db.Record;
 import ru.csc.bdse.kv.db.RecordKey;
 import ru.csc.bdse.kv.db.RecordRepository;
-import ru.csc.bdse.kv.node.KeyValueApi;
-import ru.csc.bdse.kv.node.NodeAction;
-import ru.csc.bdse.kv.node.NodeInfo;
-import ru.csc.bdse.kv.node.NodeStatus;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -14,7 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class PostgresKeyValueApi implements KeyValueApi {
+public class PostgresKeyValueApi implements InternalKeyValueApi {
     private final String name;
     private final RecordRepository repository;
     private volatile NodeStatus status;

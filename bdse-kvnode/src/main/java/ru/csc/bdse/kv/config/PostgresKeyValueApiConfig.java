@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import ru.csc.bdse.kv.db.RecordRepository;
-import ru.csc.bdse.kv.node.KeyValueApi;
+import ru.csc.bdse.kv.node.InternalKeyValueApi;
 import ru.csc.bdse.kv.node.PostgresKeyValueApi;
 import ru.csc.bdse.kv.util.Env;
 
@@ -20,10 +20,10 @@ public class PostgresKeyValueApiConfig {
     private String nodeName;
 
     @Bean
-    KeyValueApi postgresNode(RecordRepository repository, CoordinatedKeyValueApiFactory coordinatedFactory) {
+    InternalKeyValueApi postgresNode(RecordRepository repository) {
             String nodeName = this.nodeName;
             if (nodeName == null)
                 nodeName = Env.randomNodeName();
-        return coordinatedFactory.coordinateWithLocal(new PostgresKeyValueApi(nodeName, repository));
+        return new PostgresKeyValueApi(nodeName, repository);
     }
 }
