@@ -7,18 +7,26 @@ import java.util.Arrays;
 public class RecordWithTimestamp {
     private final boolean deleted;
     private final byte[] data;
+    private final long timestamp;
 
-    protected RecordWithTimestamp(boolean deleted, byte[] data) {
+    private static final RecordWithTimestamp FAKE = ofDeleted(0);
+
+    protected RecordWithTimestamp(boolean deleted, byte[] data, long timestamp) {
         this.deleted = deleted;
         this.data = data;
+        this.timestamp = timestamp;
     }
 
-    public static RecordWithTimestamp ofDeleted() {
-        return new RecordWithTimestamp(true, Constants.EMPTY_BYTE_ARRAY);
+    public static RecordWithTimestamp ofDeleted(long timestamp) {
+        return new RecordWithTimestamp(true, Constants.EMPTY_BYTE_ARRAY, timestamp);
     }
 
-    public static RecordWithTimestamp ofPresent(byte[] data) {
-        return new RecordWithTimestamp(false, data);
+    public static RecordWithTimestamp ofPresent(byte[] data, long timestamp) {
+        return new RecordWithTimestamp(false, data, timestamp);
+    }
+
+    public static RecordWithTimestamp fake() {
+        return FAKE;
     }
 
     public boolean isDeleted() {
@@ -29,11 +37,16 @@ public class RecordWithTimestamp {
         return data;
     }
 
+    public long getTimestamp() {
+        return timestamp;
+    }
+
     @Override
     public String toString() {
         return "RecordWithTimestamp{" +
                 "deleted=" + deleted +
                 ", data=" + Arrays.toString(data) +
+                ", timestamp=" + timestamp +
                 '}';
     }
 }

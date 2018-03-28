@@ -7,10 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
-import ru.csc.bdse.kv.node.ConflictResolver;
-import ru.csc.bdse.kv.node.CoordinatedKeyValueApi;
-import ru.csc.bdse.kv.node.InternalKeyValueApi;
-import ru.csc.bdse.kv.node.KeyValueApiHttpClient;
+import ru.csc.bdse.kv.node.*;
 import ru.csc.bdse.kv.util.Env;
 
 import java.util.Collections;
@@ -26,6 +23,7 @@ public class CoordinatedKeyValueApiConfig {
     @Bean
     @Primary
     @Profile(PROFILE)
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public CoordinatedKeyValueApi coordinatedKeyValueApi(
             Optional<InternalKeyValueApi> localApi, Configuration cfg, ObjectMapper mapper, ConflictResolver resolver
     ) {
@@ -35,6 +33,11 @@ public class CoordinatedKeyValueApiConfig {
                 .collect(Collectors.toList());
         localApi.ifPresent(internalKeyValueApi -> remotes.add(0, internalKeyValueApi));
         return new CoordinatedKeyValueApi(cfg.getRcl(), cfg.getWcl(), cfg.getTimeout(), remotes, mapper, resolver);
+    }
+
+    @Bean
+    public ConflictResolver defaultConflictResolver() {
+        return new TimestampConflictResolver();
     }
 
     /**

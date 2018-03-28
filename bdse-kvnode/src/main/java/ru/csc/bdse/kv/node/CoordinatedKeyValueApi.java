@@ -95,7 +95,7 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
 
     @Override
     public void put(String key, byte[] value) {
-        doPut(key, RecordWithTimestamp.ofPresent(value));
+        doPut(key, RecordWithTimestamp.ofPresent(value, System.currentTimeMillis()));
     }
 
     @Override
@@ -128,7 +128,7 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
 
     @Override
     public void delete(String key) {
-        doPut(key, RecordWithTimestamp.ofDeleted());
+        doPut(key, RecordWithTimestamp.ofDeleted(System.currentTimeMillis()));
     }
 
     @Override
