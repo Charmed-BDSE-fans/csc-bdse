@@ -2,15 +2,17 @@ package ru.csc.bdse.kv.node;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ru.csc.bdse.kv.db.RecordWithTimestamp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.io.IOException;
+import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class CoordinatedKeyValueApi implements KeyValueApi {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CoordinatedKeyValueApi.class);
 
     private final int rcl;
     private final int wcl;
@@ -18,6 +20,8 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
     private final List<InternalKeyValueApi> apis;
     private final ObjectMapper mapper;
     private final ConflictResolver conflictResolver;
+
+    private final ScheduledExecutorService executorService;
 
     public CoordinatedKeyValueApi(
             int rcl, int wcl, int timeout, List<InternalKeyValueApi> apis, ObjectMapper mapper, ConflictResolver cr) {
@@ -27,210 +31,159 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
         this.apis = apis;
         this.mapper = mapper;
         this.conflictResolver = cr;
+
+        executorService = Executors.newScheduledThreadPool(apis.size());
+    }
+
+    private <T> List<T> executeTasks(List<Supplier<T>> tasks, int enoughToComplete) {
+        CountDownLatch latch = new CountDownLatch(enoughToComplete);
+        // Work tasks
+        List<Future<T>> futures = tasks.stream()
+                .map(task -> executorService.submit(() -> {
+                    T result = task.get();
+                    latch.countDown();
+                    return result;
+                }))
+                .collect(Collectors.toList());
+        // Shutdown task
+        executorService.schedule(() -> {
+            futures.forEach(future -> future.cancel(true));
+            while (latch.getCount() > 0)
+                latch.countDown();
+        }, timeout, TimeUnit.MILLISECONDS);
+        // Wait for completion:
+        //   either `enoughToComplete` completes,
+        //   or timeout will force completion
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Interrupted while awaiting for request to complete...", e);
+        }
+        // Gather all successes
+        return futures.stream()
+                .map(future -> {
+                    try {
+                        return future.get();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("Interrupted on the future that already must be completed of failed");
+                    } catch (ExecutionException e) {
+                        LOGGER.warn("Error in processing request, assuming failure", e.getCause());
+                        return null;
+                    } catch (CancellationException ignored) {
+                        // Cancelled is OK
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private void doPut(String key, RecordWithTimestamp record) {
+        byte[] value = encodeRecord(record);
+        List<Supplier<Void>> tasks = apis.stream()
+                .map(api -> (Supplier<Void>) () -> {
+                    api.put(key, value);
+                    return null;
+                })
+                .collect(Collectors.toList());
+
+        int succeeded = executeTasks(tasks, wcl).size();
+        if (succeeded < wcl) {
+            throw new RuntimeException("'put' operation failed: not enough replica writes succeeded");
+        }
     }
 
     @Override
     public void put(String key, byte[] value) {
-        ExecutorService executorService = Executors.newFixedThreadPool(apis.size());
-        ExecutorService monitorService = Executors.newFixedThreadPool(apis.size());
-
-        AtomicInteger successCount = new AtomicInteger(0);
-
-        apis.forEach(api -> {
-            Future<Void> task = executorService.submit(() -> {
-                api.put(key, value);
-                return null;
-            });
-
-            monitorService.submit(() -> {
-                try {
-                    task.get(timeout, TimeUnit.SECONDS);
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new RuntimeException(e.getMessage());
-                } catch (TimeoutException e) {
-                    // this is fine
-                }
-                successCount.getAndIncrement();
-                return null;
-            });
-        });
-
-        try {
-            monitorService.awaitTermination(2 * timeout, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-
-        int finalCount = successCount.get();
-        if(finalCount < wcl) {
-            throw new RuntimeException("'put' operation failed: not enough replica writes succeeded");
-        }
+        doPut(key, RecordWithTimestamp.ofPresent(value));
     }
 
     @Override
     public Optional<byte[]> get(String key) {
-        ExecutorService executorService = Executors.newFixedThreadPool(apis.size());
-        ExecutorService monitorService = Executors.newFixedThreadPool(apis.size());
+        List<Supplier<Optional<RecordWithTimestamp>>> tasks = apis.stream()
+                .map(api -> (Supplier<Optional<RecordWithTimestamp>>) () -> api.get(key).map(this::decodeRecord))
+                .collect(Collectors.toList());
 
-        CopyOnWriteArrayList<Optional<byte[]>> results = new CopyOnWriteArrayList<>();
-
-        apis.forEach(api -> {
-            Future<Optional<byte[]>> task = executorService.submit(() -> api.get(key));
-
-            monitorService.submit(() -> {
-                try {
-                    Optional<byte[]> result = task.get(timeout, TimeUnit.SECONDS);
-                    results.add(result);
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new RuntimeException(e.getMessage());
-                } catch (TimeoutException e) {
-                    // this is fine
-                }
-                return null;
-            });
-        });
-
-        try {
-            monitorService.awaitTermination(2 * timeout, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-
+        List<Optional<RecordWithTimestamp>> results = executeTasks(tasks, rcl);
         if(results.size() < rcl) {
-            throw new RuntimeException("'get' operation failed: not enough replica reads secceeded");
+            throw new RuntimeException("'get' operation failed: not enough replica reads succeeded");
         }
 
-        return conflictResolver.resolve(results);
+        return conflictResolver.resolve(results).map(RecordWithTimestamp::getData);
     }
 
     @Override
     public Set<String> getKeys(String prefix) {
-        ExecutorService executorService = Executors.newFixedThreadPool(apis.size());
-        ExecutorService monitorService = Executors.newFixedThreadPool(apis.size());
+        List<Supplier<Set<String>>> tasks = apis.stream()
+                .map(api -> (Supplier<Set<String>>) () -> api.getKeys(prefix))
+                .collect(Collectors.toList());
 
-        AtomicInteger successCount = new AtomicInteger(0);
-        ConcurrentSkipListSet<String> results = new ConcurrentSkipListSet<>();
-
-        apis.forEach(api -> {
-            Future<Void> task = executorService.submit(() -> {
-                Set<String> result = api.getKeys(prefix);
-                results.addAll(result);
-                return null;
-            });
-
-            monitorService.submit(() -> {
-                try {
-                    task.get(timeout, TimeUnit.SECONDS);
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new RuntimeException(e.getMessage());
-                } catch (TimeoutException e) {
-                    // this is fine
-                }
-                successCount.getAndIncrement();
-                return null;
-            });
-        });
-
-        try {
-            monitorService.awaitTermination(2 * timeout, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-
-        int finalCount = successCount.get();
-        if(finalCount < rcl) {
+        List<Set<String>> results = executeTasks(tasks, rcl);
+        if (results.size() < rcl) {
             throw new RuntimeException("'put' operation failed: not enough replica writes succeeded");
         }
 
-        return results;
+        return conflictResolver.resolveKeys(results);
     }
 
     @Override
     public void delete(String key) {
-        byte[] value;
-        try {
-            value = mapper.writeValueAsBytes(new RecordWithTimestamp(true));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-        put(key, value);
+        doPut(key, RecordWithTimestamp.ofDeleted());
     }
 
     @Override
     public Set<NodeInfo> getInfo() {
-        ExecutorService executorService = Executors.newFixedThreadPool(apis.size());
-        ExecutorService monitorService = Executors.newFixedThreadPool(apis.size());
-
-        AtomicInteger successCount = new AtomicInteger(0);
-        ConcurrentSkipListSet<NodeInfo> results = new ConcurrentSkipListSet<>();
-
-        apis.forEach(api -> {
-            Future<Void> task = executorService.submit(() -> {
-                results.addAll(api.getInfo());
-                return null;
-            });
-
-            monitorService.submit(() -> {
-                try {
-                    task.get(timeout, TimeUnit.SECONDS);
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new RuntimeException(e.getMessage());
-                } catch (TimeoutException e) {
-                    // this is fine
-                }
-                successCount.getAndIncrement();
-                return null;
-            });
-        });
-
-        try {
-            monitorService.awaitTermination(2 * timeout, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-
-        int finalCount = successCount.get();
-        if(finalCount < rcl) {
-            throw new RuntimeException("'getInfo' operation failed: not enough replica writes succeeded");
-        }
-
-        return results;
+        List<Supplier<Set<NodeInfo>>> tasks = apis.stream()
+                .map(api -> (Supplier<Set<NodeInfo>>) api::getInfo)
+                .collect(Collectors.toList());
+        List<Set<NodeInfo>> results = executeTasks(tasks, apis.size());
+        return results.stream().flatMap(Collection::stream).collect(Collectors.toSet());
     }
 
     @Override
     public void action(String node, NodeAction action) {
-        ExecutorService executorService = Executors.newFixedThreadPool(apis.size());
+        List<Supplier<Void>> tasks = apis.stream()
+                .map(api -> (Supplier<Void>) () -> {
+                    api.action(node, action);
+                    return null;
+                })
+                .collect(Collectors.toList());
 
-        apis.forEach(api -> {
-            Future<Void> task = executorService.submit(() -> {
-                api.action(node, action);
-                return null;
-            });
-        });
-
-        try {
-            executorService.awaitTermination(timeout, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e.getMessage());
+        int succeeded = executeTasks(tasks, apis.size()).size();
+        // Here we assume that if node is asked for action not about itself then it fails...
+        if (succeeded == 0) {
+            throw new RuntimeException("'deleteAll' operation failed: not enough replica writes succeeded");
         }
     }
 
     @Override
     public void deleteAll() {
-        ExecutorService executorService = Executors.newFixedThreadPool(apis.size());
+        List<Supplier<Void>> tasks = apis.stream()
+                .map(api -> (Supplier<Void>) () -> {
+                    api.deleteAll();
+                    return null;
+                })
+                .collect(Collectors.toList());
 
-        apis.forEach(api -> {
-            Future<Void> task = executorService.submit(() -> {
-                api.deleteAll();
-                return null;
-            });
-        });
-
-        try {
-            executorService.awaitTermination(timeout, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e.getMessage());
+        int succeeded = executeTasks(tasks, apis.size()).size();
+        if (succeeded < apis.size()) {
+            throw new RuntimeException("'deleteAll' operation failed: not enough replica writes succeeded");
         }
+    }
 
+    private byte[] encodeRecord(RecordWithTimestamp record) {
+        try {
+            return mapper.writeValueAsBytes(record);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private RecordWithTimestamp decodeRecord(byte[] data) {
+        try {
+            return mapper.readValue(data, RecordWithTimestamp.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

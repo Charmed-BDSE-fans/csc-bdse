@@ -71,7 +71,7 @@ public class PostgresKeyValueApi implements InternalKeyValueApi {
     @Override
     public void action(String node, NodeAction action) {
         if (!Objects.equals(name, node)) {
-            return;
+            throw new RuntimeException(String.format("Unkown node %s", node));
         }
 
         switch (action) {

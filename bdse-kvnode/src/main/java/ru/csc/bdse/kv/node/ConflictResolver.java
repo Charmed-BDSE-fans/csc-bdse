@@ -6,6 +6,6 @@ import java.util.Set;
 
 public interface ConflictResolver {
 
-    Optional<byte[]> resolve(List<Optional<byte[]>> values);
-    Set<String> resolveKeys(Set<Set<String>> keys);
+    Optional<RecordWithTimestamp> resolve(List<Optional<RecordWithTimestamp>> values);
+    Set<String> resolveKeys(List<Set<String>> keys);
 }
