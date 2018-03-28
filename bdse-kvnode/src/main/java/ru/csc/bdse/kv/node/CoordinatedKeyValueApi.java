@@ -1,6 +1,8 @@
 package ru.csc.bdse.kv.node;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import ru.csc.bdse.kv.config.CoordinatedKeyValueApiConfig;
 
 import java.util.List;
 import java.util.Optional;
@@ -143,7 +145,13 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
 
     @Override
     public void delete(String key) {
-        
+        byte[] value;
+        try {
+            value = mapper.writeValueAsBytes(new CoordinatedKeyValueApiConfig.RecordValue(true));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+        put(key, value);
     }
 
     @Override
