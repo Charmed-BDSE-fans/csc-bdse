@@ -1,5 +1,6 @@
 package ru.csc.bdse.kv.node;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -61,7 +62,39 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
 
     @Override
     public Optional<byte[]> get(String key) {
-        return null;
+        ExecutorService executorService = Executors.newFixedThreadPool(apis.size());
+        ExecutorService monitorService = Executors.newFixedThreadPool(apis.size());
+
+        CopyOnWriteArrayList<Optional<byte[]>> results = new CopyOnWriteArrayList<>();
+
+        apis.forEach(api -> {
+            Future<Optional<byte[]>> task = executorService.submit(() -> api.get(key));
+
+            monitorService.submit(() -> {
+                try {
+                    Optional<byte[]> result = task.get(timeout, TimeUnit.SECONDS);
+                    results.add(result);
+                } catch (InterruptedException | ExecutionException e) {
+                    throw new RuntimeException(e.getMessage());
+                } catch (TimeoutException e) {
+                    // this is fine
+                }
+                return null;
+            });
+        });
+
+        try {
+            monitorService.awaitTermination(2 * timeout, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
+        if(results.size() < rcl) {
+            throw new RuntimeException("'get' operation failed: not enough replica reads secceeded");
+        }
+
+        // FIXME: where is the ConflictResolver? O_o
+        return results.get(0);
     }
 
     @Override
