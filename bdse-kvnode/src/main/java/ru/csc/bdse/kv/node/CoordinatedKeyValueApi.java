@@ -37,7 +37,7 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
 
             monitorService.submit(() -> {
                 try {
-                    return task.get(timeout, TimeUnit.SECONDS);
+                    task.get(timeout, TimeUnit.SECONDS);
                 } catch (InterruptedException | ExecutionException e) {
                     throw new RuntimeException(e.getMessage());
                 } catch (TimeoutException e) {
@@ -99,7 +99,44 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
 
     @Override
     public Set<String> getKeys(String prefix) {
-        return null;
+        ExecutorService executorService = Executors.newFixedThreadPool(apis.size());
+        ExecutorService monitorService = Executors.newFixedThreadPool(apis.size());
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        ConcurrentSkipListSet<String> results = new ConcurrentSkipListSet<>();
+
+        apis.forEach(api -> {
+            Future<Void> task = executorService.submit(() -> {
+                Set<String> result = api.getKeys(prefix);
+                results.addAll(result);
+                return null;
+            });
+
+            monitorService.submit(() -> {
+                try {
+                    task.get(timeout, TimeUnit.SECONDS);
+                } catch (InterruptedException | ExecutionException e) {
+                    throw new RuntimeException(e.getMessage());
+                } catch (TimeoutException e) {
+                    // this is fine
+                }
+                successCount.getAndIncrement();
+                return null;
+            });
+        });
+
+        try {
+            monitorService.awaitTermination(2 * timeout, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
+        int finalCount = successCount.get();
+        if(finalCount < rcl) {
+            throw new RuntimeException("'put' operation failed: not enough replica writes succeeded");
+        }
+
+        return results;
     }
 
     @Override
