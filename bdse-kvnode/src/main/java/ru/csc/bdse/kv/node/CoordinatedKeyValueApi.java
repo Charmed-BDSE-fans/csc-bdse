@@ -198,8 +198,39 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
     }
 
     @Override
-    public void action(String node, NodeAction action) { }
+    public void action(String node, NodeAction action) {
+        ExecutorService executorService = Executors.newFixedThreadPool(apis.size());
+
+        apis.forEach(api -> {
+            Future<Void> task = executorService.submit(() -> {
+                api.action(node, action);
+                return null;
+            });
+        });
+
+        try {
+            executorService.awaitTermination(timeout, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
 
     @Override
-    public void deleteAll() { }
+    public void deleteAll() {
+        ExecutorService executorService = Executors.newFixedThreadPool(apis.size());
+
+        apis.forEach(api -> {
+            Future<Void> task = executorService.submit(() -> {
+                api.deleteAll();
+                return null;
+            });
+        });
+
+        try {
+            executorService.awaitTermination(timeout, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
+    }
 }
