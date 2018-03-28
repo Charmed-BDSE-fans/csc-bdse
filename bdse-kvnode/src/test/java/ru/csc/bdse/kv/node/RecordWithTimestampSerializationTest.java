@@ -10,7 +10,7 @@ public class RecordWithTimestampSerializationTest {
 
     @Test
     public void testSerializationWithData() throws Exception {
-        RecordWithTimestamp original = new RecordWithTimestamp(false, new byte[]{1, 2, 3}, 12345);
+        RecordWithTimestamp original = RecordWithTimestamp.ofPresent(new byte[]{1, 2, 3, 4, 5}, 12345);
         String encoded = mapper.writeValueAsString(original);
         RecordWithTimestamp actual = mapper.readValue(encoded, RecordWithTimestamp.class);
 
@@ -22,7 +22,7 @@ public class RecordWithTimestampSerializationTest {
 
     @Test
     public void testSerializationWithoutData() throws Exception {
-        RecordWithTimestamp original = new RecordWithTimestamp(true, new byte[]{1, 2, 3}, 12345);
+        RecordWithTimestamp original = RecordWithTimestamp.ofDeleted(11233445);
         String encoded = mapper.writeValueAsString(original);
         RecordWithTimestamp actual = mapper.readValue(encoded, RecordWithTimestamp.class);
 

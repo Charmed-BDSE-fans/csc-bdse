@@ -19,7 +19,7 @@ public final class RecordWithTimestamp {
         timestamp = 0;
     }
 
-    RecordWithTimestamp(boolean deleted, byte[] data, long timestamp) {
+    private RecordWithTimestamp(boolean deleted, byte[] data, long timestamp) {
         this.deleted = deleted;
         this.data = data;
         this.timestamp = timestamp;
