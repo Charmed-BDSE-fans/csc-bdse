@@ -1,11 +1,13 @@
 package ru.csc.bdse.kv.node;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 public class CoordinatedKeyValueApi implements KeyValueApi {
-    public CoordinatedKeyValueApi(int rcl, int wcl, int timeout, List<InternalKeyValueApi> apis) { }
+    public CoordinatedKeyValueApi(int rcl, int wcl, int timeout, List<InternalKeyValueApi> apis, ObjectMapper mapper) { }
 
     @Override
     public void put(String key, byte[] value) { }
