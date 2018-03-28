@@ -1,5 +1,6 @@
 package ru.csc.bdse.kv.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -24,13 +25,15 @@ public class CoordinatedKeyValueApiConfig {
     @Bean
     @Primary
     @Profile(PROFILE)
-    public CoordinatedKeyValueApi coordinatedKeyValueApi(Optional<InternalKeyValueApi> localApi, Configuration cfg) {
+    public CoordinatedKeyValueApi coordinatedKeyValueApi(
+            Optional<InternalKeyValueApi> localApi, Configuration cfg, ObjectMapper mapper
+    ) {
         List<InternalKeyValueApi> remotes = cfg.getRemotes()
                 .stream()
                 .map(KeyValueApiHttpClient::new)
                 .collect(Collectors.toList());
         localApi.ifPresent(internalKeyValueApi -> remotes.add(0, internalKeyValueApi));
-        return new CoordinatedKeyValueApi(cfg.getRcl(), cfg.getWcl(), cfg.getTimeout(), remotes);
+        return new CoordinatedKeyValueApi(cfg.getRcl(), cfg.getWcl(), cfg.getTimeout(), remotes, mapper);
     }
 
     /**

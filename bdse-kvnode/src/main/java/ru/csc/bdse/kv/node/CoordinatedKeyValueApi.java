@@ -1,12 +1,12 @@
 package ru.csc.bdse.kv.node;
 
-import javax.swing.text.html.Option;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 public class CoordinatedKeyValueApi implements KeyValueApi {
 
@@ -14,12 +14,14 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
     private final int wcl;
     private final int timeout;
     private final List<InternalKeyValueApi> apis;
+    private final ObjectMapper mapper;
 
-    public CoordinatedKeyValueApi(int rcl, int wcl, int timeout, List<InternalKeyValueApi> apis) {
+    public CoordinatedKeyValueApi(int rcl, int wcl, int timeout, List<InternalKeyValueApi> apis, ObjectMapper mapper) {
         this.rcl = rcl;
         this.wcl = wcl;
         this.timeout = timeout;
         this.apis = apis;
+        this.mapper = mapper;
     }
 
     @Override
@@ -140,7 +142,9 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
     }
 
     @Override
-    public void delete(String key) { }
+    public void delete(String key) {
+        
+    }
 
     @Override
     public Set<NodeInfo> getInfo() {
