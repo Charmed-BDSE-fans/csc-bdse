@@ -2,7 +2,7 @@ package ru.csc.bdse.kv.node;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ru.csc.bdse.kv.config.CoordinatedKeyValueApiConfig;
+import ru.csc.bdse.kv.db.RecordWithTimestamp;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,13 +17,16 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
     private final int timeout;
     private final List<InternalKeyValueApi> apis;
     private final ObjectMapper mapper;
+    private final ConflictResolver conflictResolver;
 
-    public CoordinatedKeyValueApi(int rcl, int wcl, int timeout, List<InternalKeyValueApi> apis, ObjectMapper mapper) {
+    public CoordinatedKeyValueApi(
+            int rcl, int wcl, int timeout, List<InternalKeyValueApi> apis, ObjectMapper mapper, ConflictResolver cr) {
         this.rcl = rcl;
         this.wcl = wcl;
         this.timeout = timeout;
         this.apis = apis;
         this.mapper = mapper;
+        this.conflictResolver = cr;
     }
 
     @Override
@@ -97,8 +100,7 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
             throw new RuntimeException("'get' operation failed: not enough replica reads secceeded");
         }
 
-        // FIXME: where is the ConflictResolver? O_o
-        return results.get(0);
+        return conflictResolver.resolve(results);
     }
 
     @Override
@@ -147,7 +149,7 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
     public void delete(String key) {
         byte[] value;
         try {
-            value = mapper.writeValueAsBytes(new CoordinatedKeyValueApiConfig.RecordValue(true));
+            value = mapper.writeValueAsBytes(new RecordWithTimestamp(true));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e.getMessage());
         }
@@ -156,7 +158,43 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
 
     @Override
     public Set<NodeInfo> getInfo() {
-        return null;
+        ExecutorService executorService = Executors.newFixedThreadPool(apis.size());
+        ExecutorService monitorService = Executors.newFixedThreadPool(apis.size());
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        ConcurrentSkipListSet<NodeInfo> results = new ConcurrentSkipListSet<>();
+
+        apis.forEach(api -> {
+            Future<Void> task = executorService.submit(() -> {
+                results.addAll(api.getInfo());
+                return null;
+            });
+
+            monitorService.submit(() -> {
+                try {
+                    task.get(timeout, TimeUnit.SECONDS);
+                } catch (InterruptedException | ExecutionException e) {
+                    throw new RuntimeException(e.getMessage());
+                } catch (TimeoutException e) {
+                    // this is fine
+                }
+                successCount.getAndIncrement();
+                return null;
+            });
+        });
+
+        try {
+            monitorService.awaitTermination(2 * timeout, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
+        int finalCount = successCount.get();
+        if(finalCount < rcl) {
+            throw new RuntimeException("'getInfo' operation failed: not enough replica writes succeeded");
+        }
+
+        return results;
     }
 
     @Override

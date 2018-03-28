@@ -88,24 +88,4 @@ public class CoordinatedKeyValueApiConfig {
                     '}';
         }
     }
-
-    public static class RecordValue {
-        private final boolean isDeleted;
-
-        public RecordValue(boolean isDeleted) {
-            this.isDeleted = isDeleted;
-        }
-
-        public boolean isDeleted() {
-            return isDeleted;
-        }
-
-        @Override
-        public String toString() {
-            return "RecordValue{" +
-                    "isDeleted=" + isDeleted +
-                    '}';
-        }
-    }
-
 }
