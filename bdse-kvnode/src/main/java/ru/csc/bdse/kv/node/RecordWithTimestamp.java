@@ -1,17 +1,25 @@
 package ru.csc.bdse.kv.node;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import ru.csc.bdse.util.Constants;
 
 import java.util.Arrays;
+import java.util.Optional;
 
-public class RecordWithTimestamp {
+public final class RecordWithTimestamp {
     private final boolean deleted;
     private final byte[] data;
     private final long timestamp;
 
     private static final RecordWithTimestamp FAKE = ofDeleted(0);
 
-    protected RecordWithTimestamp(boolean deleted, byte[] data, long timestamp) {
+    protected RecordWithTimestamp() {
+        data = Constants.EMPTY_BYTE_ARRAY;
+        deleted = false;
+        timestamp = 0;
+    }
+
+    RecordWithTimestamp(boolean deleted, byte[] data, long timestamp) {
         this.deleted = deleted;
         this.data = data;
         this.timestamp = timestamp;
@@ -35,6 +43,13 @@ public class RecordWithTimestamp {
 
     public byte[] getData() {
         return data;
+    }
+
+    @JsonIgnore
+    public Optional<byte[]> getOptionalData() {
+        if (deleted)
+            return Optional.empty();
+        return Optional.of(data);
     }
 
     public long getTimestamp() {
