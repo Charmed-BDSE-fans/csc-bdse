@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 public class CoordinatedKeyValueApi implements KeyValueApi {
     private static final Logger LOGGER = LoggerFactory.getLogger(CoordinatedKeyValueApi.class);
+    private static final Object EXECUTION_SUCCEEDED = new Object();
 
     private final int rcl;
     private final int wcl;
@@ -80,10 +81,10 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
 
     private void doPut(String key, RecordWithTimestamp record) {
         byte[] value = encodeRecord(record);
-        List<Supplier<Void>> tasks = apis.stream()
-                .map(api -> (Supplier<Void>) () -> {
+        List<Supplier<Object>> tasks = apis.stream()
+                .map(api -> (Supplier<Object>) () -> {
                     api.put(key, value);
-                    return null;
+                    return EXECUTION_SUCCEEDED;
                 })
                 .collect(Collectors.toList());
 
@@ -142,10 +143,10 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
 
     @Override
     public void action(String node, NodeAction action) {
-        List<Supplier<Void>> tasks = apis.stream()
-                .map(api -> (Supplier<Void>) () -> {
+        List<Supplier<Object>> tasks = apis.stream()
+                .map(api -> (Supplier<Object>) () -> {
                     api.action(node, action);
-                    return null;
+                    return EXECUTION_SUCCEEDED;
                 })
                 .collect(Collectors.toList());
 
@@ -158,10 +159,10 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
 
     @Override
     public void deleteAll() {
-        List<Supplier<Void>> tasks = apis.stream()
-                .map(api -> (Supplier<Void>) () -> {
+        List<Supplier<Object>> tasks = apis.stream()
+                .map(api -> (Supplier<Object>) () -> {
                     api.deleteAll();
-                    return null;
+                    return EXECUTION_SUCCEEDED;
                 })
                 .collect(Collectors.toList());
 
