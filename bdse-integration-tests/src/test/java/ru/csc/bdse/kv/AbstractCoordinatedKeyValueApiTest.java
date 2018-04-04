@@ -1,8 +1,9 @@
 package ru.csc.bdse.kv;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-import ru.csc.bdse.kv.node.CoordinatedKeyValueApi;
+import ru.csc.bdse.kv.node.KeyValueApi;
 import ru.csc.bdse.kv.node.NodeAction;
 import ru.csc.bdse.util.Random;
 
@@ -12,9 +13,15 @@ import java.util.Optional;
 import static org.junit.Assert.*;
 
 public abstract class AbstractCoordinatedKeyValueApiTest {
-    protected abstract CoordinatedKeyValueApi getApi();
+    protected abstract KeyValueApi getApi();
 
-    CoordinatedKeyValueApi api = getApi();
+    private KeyValueApi api;
+
+    @Before
+    public void clean() {
+        api = getApi();
+        api.deleteAll();
+    }
 
     @Test
     public void basicReadWriteTest() {
