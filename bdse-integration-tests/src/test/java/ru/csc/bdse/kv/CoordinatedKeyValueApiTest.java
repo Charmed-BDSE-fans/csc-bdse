@@ -6,6 +6,7 @@ import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.model.Statement;
+import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.WaitAllStrategy;
 import org.testcontainers.containers.wait.WaitStrategy;
 import ru.csc.bdse.kv.node.KeyValueApi;
@@ -49,8 +50,11 @@ public class CoordinatedKeyValueApiTest extends AbstractCoordinatedKeyValueApiTe
 
         offNames = names.subList(1, 1+fails);
 
+        Network network = Network.builder().build();
+
         nodes = names.stream()
                 .map(Containers::inMemoryNode)
+                .map(o -> o.withNetwork(network))
                 .collect(Collectors.toList());
 
         Containers.coordinateKvNodes(nodes, rcl, wcl, TIMEOUT);
@@ -69,7 +73,6 @@ public class CoordinatedKeyValueApiTest extends AbstractCoordinatedKeyValueApiTe
                 n.start();
                 WaitStrategy ws = new WaitAllStrategy();
                 ws.waitUntilReady(n);
-                n.waitingFor(ws);
             }
         }
 

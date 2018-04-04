@@ -257,8 +257,6 @@ public class Containers {
         }
 
         public String getInternalKVBaseUrl(boolean getPredefinedAddress) {
-            if (!getSpringProfiles().contains(CoordinatedKeyValueApiConfig.PROFILE))
-                throw new IllegalStateException("There is not internal kv api on uncoordinated kv-node");
             return String.format("http://%s/%s", getConnectionHostPort(getPredefinedAddress), KeyValueApiControllerConfig.INTERNAL_KV_PREFIX);
         }
     }
