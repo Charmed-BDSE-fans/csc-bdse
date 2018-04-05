@@ -48,7 +48,7 @@ public class CoordinatedKeyValueApiTest extends AbstractCoordinatedKeyValueApiTe
                 .map(d -> String.format("kv-%d", d))
                 .collect(Collectors.toList());
 
-        offNames = names.subList(1, 1+fails);
+        offNames = names.subList(0, fails);
 
         Network network = Network.builder().build();
 
@@ -87,7 +87,10 @@ public class CoordinatedKeyValueApiTest extends AbstractCoordinatedKeyValueApiTe
 
     @Override
     protected KeyValueApi getApi() {
-        return new KeyValueApiHttpClient(nodes.get(0).getKVBaseUrl(false));
+        return new KeyValueApiHttpClient(nodes.stream()
+                .map(it -> it.getKVBaseUrl(false))
+                .collect(Collectors.toList())
+        );
     }
 
     @Override
