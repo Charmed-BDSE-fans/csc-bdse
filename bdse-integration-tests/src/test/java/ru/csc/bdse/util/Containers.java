@@ -1,6 +1,6 @@
 package ru.csc.bdse.util;
 
-import org.springframework.boot.test.util.EnvironmentTestUtils;
+import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
@@ -77,7 +77,7 @@ public class Containers {
         return configureKVNode(container, config);
     }
 
-    private static <T extends SpringAppContainer<T>> T configureKVNode(
+    private static <T extends KVNodeContainerBase<T>> T configureKVNode(
             T container,
             KVNodeContainer.Config config
     ) {
@@ -150,7 +150,7 @@ public class Containers {
         return configureKVNode(configureApp(new AppContainer(), version), config);
     }
 
-    private static <T extends SpringAppContainer<T>> T configureApp(T container, AppContainer.Version version) {
+    private static AppContainer configureApp(AppContainer container, AppContainer.Version version) {
         switch (version) {
             case V1:
                 return container.withSpringProfile(PhoneBookApiV1Config.PROFILE);
@@ -215,8 +215,9 @@ public class Containers {
          * @param context Context from ApplicationContextInitializer
          */
         public void setupSpringContext(ConfigurableApplicationContext context) {
-            EnvironmentTestUtils.addEnvironment(context,
-                    String.format("%s=%s", Env.SPRING_DATASOURCE_URL_PROPERTY, getConnectionUrl(false)));
+            TestPropertyValues.of(
+                    String.format("%s=%s", Env.SPRING_DATASOURCE_URL_PROPERTY, getConnectionUrl(false))
+            ).applyTo(context);
         }
     }
 
