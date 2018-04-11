@@ -109,8 +109,12 @@ public class CoordinatedKeyValueApi implements KeyValueApi {
         if(results.size() < rcl) {
             throw new RuntimeException("'get' operation failed: not enough replica reads succeeded");
         }
+        List<RecordWithTimestamp> filteredResults = results.stream()
+                .map(r -> r.orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
-        return conflictResolver.resolve(results).flatMap(RecordWithTimestamp::getOptionalData);
+        return conflictResolver.resolve(filteredResults).flatMap(RecordWithTimestamp::getOptionalData);
     }
 
     @Override

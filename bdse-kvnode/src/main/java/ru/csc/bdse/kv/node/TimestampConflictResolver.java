@@ -27,13 +27,10 @@ public class TimestampConflictResolver implements ConflictResolver {
     }
 
     @Override
-    public Optional<RecordWithTimestamp> resolve(List<Optional<RecordWithTimestamp>> maybeValues) {
-        if (maybeValues.size() == 0) {
+    public Optional<RecordWithTimestamp> resolve(List<RecordWithTimestamp> values) {
+        if (values.size() == 0) {
             throw new IllegalArgumentException("Empty argument");
         }
-        List<RecordWithTimestamp> values = maybeValues.stream()
-                .map(v -> v.orElse(RecordWithTimestamp.fake()))
-                .collect(Collectors.toList());
 
         long maxTimestamp = values.stream()
                 .mapToLong(RecordWithTimestamp::getTimestamp)
