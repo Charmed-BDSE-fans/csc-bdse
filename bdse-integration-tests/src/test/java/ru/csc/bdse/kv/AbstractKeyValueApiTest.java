@@ -2,6 +2,9 @@ package ru.csc.bdse.kv;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Test;
+import ru.csc.bdse.kv.node.KeyValueApi;
+import ru.csc.bdse.kv.node.NodeInfo;
+import ru.csc.bdse.kv.node.NodeStatus;
 import ru.csc.bdse.util.Constants;
 import ru.csc.bdse.util.Random;
 
@@ -19,10 +22,18 @@ public abstract class AbstractKeyValueApiTest {
 
     protected abstract KeyValueApi newKeyValueApi();
 
-    private KeyValueApi api = newKeyValueApi();
+    private KeyValueApi api;
+
+    private synchronized KeyValueApi getKeyValueApi() {
+        if (api == null)
+            api = newKeyValueApi();
+        return api;
+    }
 
     @Test
     public void createValue() {
+        KeyValueApi api = getKeyValueApi();
+
         SoftAssertions softAssert = new SoftAssertions();
 
         String key = Random.nextKey();
@@ -40,6 +51,7 @@ public abstract class AbstractKeyValueApiTest {
 
     @Test
     public void updateValue() {
+        KeyValueApi api = getKeyValueApi();
         SoftAssertions softAssert = new SoftAssertions();
 
         String key = Random.nextKey();
@@ -59,6 +71,7 @@ public abstract class AbstractKeyValueApiTest {
 
     @Test
     public void deleteValue() {
+        KeyValueApi api = getKeyValueApi();
         SoftAssertions softAssert = new SoftAssertions();
 
         String key = Random.nextKey();
@@ -77,6 +90,7 @@ public abstract class AbstractKeyValueApiTest {
 
     @Test
     public void deleteNonexistentValue() {
+        KeyValueApi api = getKeyValueApi();
         SoftAssertions softAssert = new SoftAssertions();
 
         String nonexistentKey = Random.nextKey();
@@ -92,6 +106,7 @@ public abstract class AbstractKeyValueApiTest {
 
     @Test
     public void getClusterInfoValue() {
+        KeyValueApi api = getKeyValueApi();
         SoftAssertions softAssert = new SoftAssertions();
 
         Set<NodeInfo> info = api.getInfo();
@@ -103,6 +118,7 @@ public abstract class AbstractKeyValueApiTest {
 
     @Test
     public void getKeysByPrefix() {
+        KeyValueApi api = getKeyValueApi();
         SoftAssertions softAssert = new SoftAssertions();
 
         String prefix1 = "prefix1";

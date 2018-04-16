@@ -1,0 +1,21 @@
+server.error.whitelabel.enabled: false
+---
+spring:
+  profiles: "!kvnode-postgres"
+  autoconfigure:
+    exclude:
+    - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+    - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+---
+spring:
+  profiles: kvnode-postgres
+  jpa:
+    database: postgresql
+    show-sql: false
+    hibernate.ddl-auto: update
+  datasource:
+    platform: postgres
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+---
