@@ -46,19 +46,19 @@ public class PartitionedDoubleFailureModNTest extends AbstractPartitionedKeyValu
 
     @Override
     protected float expectedKeysLossProportion() {
-        return (node0.getKeys("").size()
+        return ((float)(node0.getKeys("").size()
                 + node1.getKeys("").size()
                 + node2.getKeys("").size()
                 + node3.getKeys("").size()
-                + node4.getKeys("").size()) / 5;
+                + node4.getKeys("").size())) / 5;
     }
 
     @Override
     protected float expectedUndeletedKeysProportion() {
-        return (node0.getKeys("").size()
+        return ((float)(node0.getKeys("").size()
                 + node1.getKeys("").size()
                 + node2.getKeys("").size()
                 + node3.getKeys("").size()
-                + node4.getKeys("").size()) / 5;
+                + node4.getKeys("").size())) / 5;
     }
 }

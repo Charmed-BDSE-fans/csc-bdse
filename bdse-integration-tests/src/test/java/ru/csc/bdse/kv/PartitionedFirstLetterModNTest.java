@@ -42,11 +42,11 @@ public class PartitionedFirstLetterModNTest extends AbstractPartitionedKeyValueA
 
     @Override
     protected float expectedKeysLossProportion() {
-        return (node0.getKeys("").size() + node1.getKeys("").size() + node2.getKeys("").size()) / 3;
+        return ((float)(node0.getKeys("").size() + node1.getKeys("").size() + node2.getKeys("").size())) / 3;
     }
 
     @Override
     protected float expectedUndeletedKeysProportion() {
-        return (node0.getKeys("").size() + node1.getKeys("").size() + node2.getKeys("").size()) / 3;
+        return ((float)(node0.getKeys("").size() + node1.getKeys("").size() + node2.getKeys("").size())) / 3;
     }
 }
