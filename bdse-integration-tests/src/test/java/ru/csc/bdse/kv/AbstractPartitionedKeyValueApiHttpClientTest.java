@@ -1,6 +1,10 @@
 package ru.csc.bdse.kv;
 
 import org.junit.Test;
+import ru.csc.bdse.kv.node.KeyValueApi;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Test have to be implemented
@@ -9,11 +13,20 @@ import org.junit.Test;
  */
 public abstract class AbstractPartitionedKeyValueApiHttpClientTest {
 
-/*
     protected abstract KeyValueApi newCluster1();
     protected abstract KeyValueApi newCluster2();
     // Stream.generate(() -> RandomStringUtils.randomAlphanumeric(10)).limit(1000).collect(Collectors.toSet());
-    protected abstract Set<String> keys();
+
+    protected Set<String> keys() {
+        if(cluster1 == null && cluster2 == null) {
+            return new HashSet<>();
+        }
+        if(cluster1 != null) {
+            return cluster1.getKeys("");
+        }
+        return cluster2.getKeys("");
+    }
+
     protected abstract float expectedKeysLossProportion();
     protected abstract float expectedUndeletedKeysProportion();
 
@@ -21,7 +34,6 @@ public abstract class AbstractPartitionedKeyValueApiHttpClientTest {
     private KeyValueApi cluster2 = newCluster2();
 
     private Set<String> keys = keys();
-*/
 
     @Test
     public void put1000KeysAndReadItCorrectlyOnCluster1() {
