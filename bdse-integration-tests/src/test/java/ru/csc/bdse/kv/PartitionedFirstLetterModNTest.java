@@ -18,6 +18,11 @@ public class PartitionedFirstLetterModNTest extends AbstractPartitionedKeyValueA
     private final InMemoryKeyValueApi node1 = new InMemoryKeyValueApi(name1);
     private final InMemoryKeyValueApi node2 = new InMemoryKeyValueApi(name2);
 
+    public PartitionedFirstLetterModNTest() {
+        cluster1 = newCluster1();
+        cluster2 = newCluster2();
+    }
+
     @Override
     protected KeyValueApi newCluster1() {
         Set<String> partitions = new HashSet<>(Arrays.asList(name0, name1, name2));

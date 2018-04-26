@@ -2,6 +2,8 @@ package ru.csc.bdse.kv;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.csc.bdse.kv.node.KeyValueApi;
 
 import java.util.HashSet;
@@ -17,6 +19,8 @@ import static junit.framework.TestCase.assertTrue;
  * @author alesavin
  */
 public abstract class AbstractPartitionedKeyValueApiHttpClientTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractPartitionedKeyValueApiHttpClientTest.class);
 
     protected abstract KeyValueApi newCluster1();
     protected abstract KeyValueApi newCluster2();
@@ -37,9 +41,9 @@ public abstract class AbstractPartitionedKeyValueApiHttpClientTest {
     protected abstract float expectedKeysLossProportion();
     protected abstract float expectedUndeletedKeysProportion();
 
-    private KeyValueApi cluster1 = newCluster1();
-    private KeyValueApi cluster2 = newCluster2();
-    private Set<String> keys = keys();
+    protected KeyValueApi cluster1; // = newCluster1();
+    protected KeyValueApi cluster2; // = newCluster2();
+    protected Set<String> keys; // = keys();
 
     @Test
     public void put1000KeysAndReadItCorrectlyOnCluster1() {

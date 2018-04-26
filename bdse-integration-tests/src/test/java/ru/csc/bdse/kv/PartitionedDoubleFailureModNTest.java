@@ -20,6 +20,11 @@ public class PartitionedDoubleFailureModNTest extends AbstractPartitionedKeyValu
     private final InMemoryKeyValueApi node3 = new InMemoryKeyValueApi(name3);
     private final InMemoryKeyValueApi node4 = new InMemoryKeyValueApi(name4);
 
+    public PartitionedDoubleFailureModNTest() {
+        cluster1 = newCluster1();
+        cluster2 = newCluster2();
+    }
+
     @Override
     protected KeyValueApi newCluster1() {
         Set<String> partitions = new HashSet<>(Arrays.asList(name0, name1, name2, name3, name4));
