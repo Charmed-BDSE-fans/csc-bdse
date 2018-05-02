@@ -10,7 +10,7 @@ import java.util.concurrent.*;
 public class PartitioningKeyValueApi implements KeyValueApi {
     private static final Logger LOGGER = LoggerFactory.getLogger(KeyValueApiHttpClient.class);
     private final Partitioner partitioner;
-    private long  timeout;
+    private final long timeout;
     private final Map<String, KeyValueApi> shards;
     private final ExecutorService executorService;
 
@@ -29,6 +29,7 @@ public class PartitioningKeyValueApi implements KeyValueApi {
             f.get(timeout, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOGGER.info(e.getMessage());
+            throw new RuntimeException("something went wrong", e);
         }
     }
 
@@ -42,6 +43,7 @@ public class PartitioningKeyValueApi implements KeyValueApi {
             res = f.get(timeout, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOGGER.info(e.getMessage());
+            throw new RuntimeException("something went wrong", e);
         }
 
         return res;
@@ -59,10 +61,10 @@ public class PartitioningKeyValueApi implements KeyValueApi {
 
         for (Future<Set<String>> fs : fkeys) {
             try {
-                keys.addAll(fs.get(3, TimeUnit.SECONDS));
+                keys.addAll(fs.get(timeout, TimeUnit.SECONDS));
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 LOGGER.info(e.getMessage());
-                return Collections.emptySet();
+                throw new RuntimeException("something went wrong", e);
             }
         }
 
@@ -77,6 +79,7 @@ public class PartitioningKeyValueApi implements KeyValueApi {
             f.get(timeout, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOGGER.info(e.getMessage());
+            throw new RuntimeException("something went wrong", e);
         }
     }
 
@@ -92,10 +95,10 @@ public class PartitioningKeyValueApi implements KeyValueApi {
 
         for (Future<Set<NodeInfo>> i : finfos) {
             try {
-                infos.addAll(i.get(3, TimeUnit.SECONDS));
+                infos.addAll(i.get(timeout, TimeUnit.SECONDS));
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 LOGGER.info(e.getMessage());
-                return Collections.emptySet();
+                throw new RuntimeException("something went wrong", e);
             }
         }
 
@@ -110,6 +113,7 @@ public class PartitioningKeyValueApi implements KeyValueApi {
             f.get(timeout, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOGGER.info(e.getMessage());
+            throw new RuntimeException("something went wrong", e);
         }
     }
 
